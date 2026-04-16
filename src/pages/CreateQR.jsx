@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
+
 export default function CreateQR() {
   const navigate = useNavigate();
 
@@ -9,11 +10,12 @@ export default function CreateQR() {
     phone: "",
     bloodGroup: "",
     emergencyContact: "",
-    emergencyEmail: "", // 🔥 NEW
+    emergencyEmail: "",
   });
 
   const [loading, setLoading] = useState(false);
 
+  /* ================= SUBMIT ================= */
   const handleSubmit = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -28,16 +30,20 @@ export default function CreateQR() {
         !form.name ||
         !form.phone ||
         !form.bloodGroup ||
-        !form.emergencyContact ||
-        !form.emergencyEmail
+        !form.emergencyContact
       ) {
-        alert("Please fill all fields");
+        alert("Please fill required fields");
+        return;
+      }
+
+      if (form.phone.length < 10 || form.emergencyContact.length < 10) {
+        alert("Enter valid phone numbers");
         return;
       }
 
       setLoading(true);
 
-      const res = await fetch("${API_URL}/create-qr", {
+      const res = await fetch(`${API_URL}/create-qr`, {   // ✅ FIXED
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,11 +52,18 @@ export default function CreateQR() {
         body: JSON.stringify(form),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid server response");
+      }
 
       if (!res.ok) {
         throw new Error(data.error || "Failed to create QR");
       }
+
+      alert("QR Created Successfully ✅");
 
       navigate("/");
 
@@ -65,21 +78,22 @@ export default function CreateQR() {
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white relative flex items-center justify-center p-4">
 
-      {/* 🔙 BACK BUTTON */}
+      {/* 🔙 BACK */}
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-6 left-6 text-gray-400 hover:text-white text-sm transition"
+        className="absolute top-6 left-6 text-gray-400 hover:text-white text-sm"
       >
         ← Back
       </button>
 
-      {/* FORM CARD */}
+      {/* CARD */}
       <div className="bg-[#111827] p-8 rounded-xl shadow w-[400px] border border-gray-800">
 
         <h2 className="text-xl font-bold mb-6 text-center">
           Create QR Profile
         </h2>
 
+        {/* NAME */}
         <input
           placeholder="Name"
           className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
@@ -89,15 +103,22 @@ export default function CreateQR() {
           }
         />
 
+        {/* PHONE */}
         <input
+          type="tel"
+          inputMode="numeric"
           placeholder="Phone"
           className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
           value={form.phone}
           onChange={(e) =>
-            setForm({ ...form, phone: e.target.value })
+            setForm({
+              ...form,
+              phone: e.target.value.replace(/\D/g, ""),
+            })
           }
         />
 
+        {/* BLOOD */}
         <input
           placeholder="Blood Group"
           className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
@@ -107,22 +128,25 @@ export default function CreateQR() {
           }
         />
 
+        {/* EMERGENCY CONTACT */}
         <input
+          type="tel"
+          inputMode="numeric"
           placeholder="Emergency Contact"
           className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
           value={form.emergencyContact}
           onChange={(e) =>
             setForm({
               ...form,
-              emergencyContact: e.target.value,
+              emergencyContact: e.target.value.replace(/\D/g, ""),
             })
           }
         />
 
-        {/* 🔥 NEW FIELD */}
+        {/* EMAIL (OPTIONAL) */}
         <input
-          placeholder="Emergency Email"
           type="email"
+          placeholder="Emergency Email (optional)"
           className="w-full mb-4 p-2 bg-[#0B0F19] border border-gray-700 rounded"
           value={form.emergencyEmail}
           onChange={(e) =>
@@ -133,6 +157,7 @@ export default function CreateQR() {
           }
         />
 
+        {/* BUTTON */}
         <button
           onClick={handleSubmit}
           disabled={loading}

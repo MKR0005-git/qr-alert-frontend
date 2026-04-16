@@ -49,6 +49,11 @@ export default function ActivateQR() {
       return;
     }
 
+    if (form.phone.length < 10 || form.emergencyContact.length < 10) {
+      alert("Enter valid phone numbers");
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -86,7 +91,7 @@ export default function ActivateQR() {
     }
   };
 
-  /* ================= LOADING SCREEN ================= */
+  /* ================= LOADING ================= */
   if (checkingAuth) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -99,7 +104,7 @@ export default function ActivateQR() {
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
 
-      {/* 🔙 BACK */}
+      {/* BACK */}
       <button
         onClick={() => navigate(-1)}
         className="absolute top-6 left-6 text-gray-400 hover:text-white text-sm"
@@ -114,24 +119,64 @@ export default function ActivateQR() {
           Activate QR
         </h2>
 
-        {/* INPUTS */}
-        {[
-          { key: "name", label: "Full Name" },
-          { key: "phone", label: "Phone Number" },
-          { key: "bloodGroup", label: "Blood Group" },
-          { key: "emergencyContact", label: "Emergency Contact" },
-          { key: "emergencyEmail", label: "Emergency Email (optional)" },
-        ].map((field) => (
-          <input
-            key={field.key}
-            placeholder={field.label}
-            type={field.key === "emergencyEmail" ? "email" : "text"}
-            className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded focus:outline-none focus:border-orange-500"
-            onChange={(e) =>
-              setForm({ ...form, [field.key]: e.target.value })
-            }
-          />
-        ))}
+        {/* NAME */}
+        <input
+          placeholder="Full Name"
+          className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
+          onChange={(e) =>
+            setForm({ ...form, name: e.target.value })
+          }
+        />
+
+        {/* PHONE */}
+        <input
+          type="tel"
+          inputMode="numeric"
+          placeholder="Phone Number"
+          className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
+          onChange={(e) =>
+            setForm({
+              ...form,
+              phone: e.target.value.replace(/\D/g, ""),
+            })
+          }
+        />
+
+        {/* BLOOD */}
+        <input
+          placeholder="Blood Group"
+          className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
+          onChange={(e) =>
+            setForm({ ...form, bloodGroup: e.target.value })
+          }
+        />
+
+        {/* EMERGENCY CONTACT */}
+        <input
+          type="tel"
+          inputMode="numeric"
+          placeholder="Emergency Contact"
+          className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
+          onChange={(e) =>
+            setForm({
+              ...form,
+              emergencyContact: e.target.value.replace(/\D/g, ""),
+            })
+          }
+        />
+
+        {/* EMAIL */}
+        <input
+          type="email"
+          placeholder="Emergency Email (optional)"
+          className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
+          onChange={(e) =>
+            setForm({
+              ...form,
+              emergencyEmail: e.target.value,
+            })
+          }
+        />
 
         {/* BUTTON */}
         <button
@@ -142,7 +187,6 @@ export default function ActivateQR() {
           {loading ? "Activating..." : "Activate QR"}
         </button>
 
-        {/* INFO */}
         <p className="text-xs text-gray-500 text-center mt-4">
           Login required to activate QR
         </p>
