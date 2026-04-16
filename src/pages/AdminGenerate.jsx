@@ -9,12 +9,10 @@ export default function AdminGenerate() {
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState([]);
 
-  const token = localStorage.getItem("token");
-
   /* ================= GENERATE ================= */
   const handleGenerate = async () => {
     try {
-      setLoading(true);
+      const token = localStorage.getItem("token");
 
       if (!token) {
         alert("Please login");
@@ -22,11 +20,13 @@ export default function AdminGenerate() {
         return;
       }
 
+      setLoading(true);
+
       const res = await fetch(`${API_URL}/bulk-create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token,
+          Authorization: `Bearer ${token}`, // 🔥 FIXED
         },
         body: JSON.stringify({ count: Number(count) }),
       });

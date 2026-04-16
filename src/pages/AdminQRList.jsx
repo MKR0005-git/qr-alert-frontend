@@ -7,15 +7,20 @@ export default function AdminQRList() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const token = localStorage.getItem("token");
-
   /* ================= FETCH ================= */
   useEffect(() => {
     const fetchQrs = async () => {
       try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          navigate("/login");
+          return;
+        }
+
         const res = await fetch(`${API_URL}/all-qrs`, {
           headers: {
-            Authorization: token,
+            Authorization: `Bearer ${token}`, // 🔥 FIXED
           },
         });
 
@@ -41,7 +46,7 @@ export default function AdminQRList() {
     };
 
     fetchQrs();
-  }, [token]);
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -80,18 +85,15 @@ export default function AdminQRList() {
             className="bg-[#111827] p-5 rounded-xl border border-gray-800 text-center"
           >
 
-            {/* QR */}
             <img
               src={`${API_URL}/generate-qr/${qr._id}`}
               className="mx-auto mb-4 w-32 bg-white p-2 rounded"
             />
 
-            {/* NAME */}
             <p className="text-sm font-semibold">
               {qr.name || "UNASSIGNED"}
             </p>
 
-            {/* STATUS */}
             <p
               className={`text-xs mt-1 font-semibold ${
                 qr.isActivated ? "text-green-400" : "text-red-400"
@@ -100,12 +102,10 @@ export default function AdminQRList() {
               {qr.isActivated ? "Activated" : "Not Activated"}
             </p>
 
-            {/* SCANS */}
             <p className="text-gray-400 text-xs mt-1">
               Scans: {qr.scans}
             </p>
 
-            {/* DOWNLOAD */}
             <div className="flex justify-center gap-2 mt-3 text-xs">
 
               <a href={`${API_URL}/download-qr/${qr._id}/6`} className="bg-orange-500 px-2 py-1 rounded">
@@ -122,7 +122,6 @@ export default function AdminQRList() {
 
             </div>
 
-            {/* VIEW */}
             <button
               onClick={() => navigate(`/profile/${qr._id}`)}
               className="text-blue-400 text-xs mt-3"
@@ -130,7 +129,6 @@ export default function AdminQRList() {
               View Profile
             </button>
 
-            {/* ID */}
             <p className="text-gray-500 text-[10px] mt-2 break-all">
               {qr._id}
             </p>

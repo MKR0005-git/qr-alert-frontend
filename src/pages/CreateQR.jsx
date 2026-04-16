@@ -43,11 +43,11 @@ export default function CreateQR() {
 
       setLoading(true);
 
-      const res = await fetch(`${API_URL}/create-qr`, {   // ✅ FIXED
+      const res = await fetch(`${API_URL}/create-qr`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token,
+          Authorization: `Bearer ${token}`, // 🔥 FIXED
         },
         body: JSON.stringify(form),
       });
@@ -143,7 +143,7 @@ export default function CreateQR() {
           }
         />
 
-        {/* EMAIL (OPTIONAL) */}
+        {/* EMAIL */}
         <input
           type="email"
           placeholder="Emergency Email (optional)"

@@ -61,7 +61,7 @@ export default function ActivateQR() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token,
+          Authorization: `Bearer ${token}`, // 🔥 FIXED HERE
         },
         body: JSON.stringify(form),
       });
@@ -119,7 +119,6 @@ export default function ActivateQR() {
           Activate QR
         </h2>
 
-        {/* NAME */}
         <input
           placeholder="Full Name"
           className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
@@ -128,7 +127,6 @@ export default function ActivateQR() {
           }
         />
 
-        {/* PHONE */}
         <input
           type="tel"
           inputMode="numeric"
@@ -142,7 +140,6 @@ export default function ActivateQR() {
           }
         />
 
-        {/* BLOOD */}
         <input
           placeholder="Blood Group"
           className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
@@ -151,7 +148,6 @@ export default function ActivateQR() {
           }
         />
 
-        {/* EMERGENCY CONTACT */}
         <input
           type="tel"
           inputMode="numeric"
@@ -165,7 +161,6 @@ export default function ActivateQR() {
           }
         />
 
-        {/* EMAIL */}
         <input
           type="email"
           placeholder="Emergency Email (optional)"
@@ -178,7 +173,6 @@ export default function ActivateQR() {
           }
         />
 
-        {/* BUTTON */}
         <button
           onClick={handleSubmit}
           disabled={loading}
