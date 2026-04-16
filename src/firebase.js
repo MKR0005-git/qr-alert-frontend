@@ -20,24 +20,30 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
+/* 🔥 IMPORTANT: helps mobile + language handling */
+auth.useDeviceLanguage();
+
 /* ================= PROVIDER ================= */
-// default provider (no forced popup)
 export const provider = new GoogleAuthProvider();
 
 /* ================= LOGIN ================= */
-// forceSelect = true → ask account
-// forceSelect = false → auto login (default)
 export const loginWithGoogle = async (forceSelect = false) => {
   try {
     const customProvider = new GoogleAuthProvider();
 
+    // 🔥 force account selection if needed
     if (forceSelect) {
       customProvider.setCustomParameters({
         prompt: "select_account",
       });
     }
 
+    // 🔥 ALWAYS use popup (fixes mobile crash)
     const result = await signInWithPopup(auth, customProvider);
+
+    if (!result || !result.user) {
+      throw new Error("Google login failed");
+    }
 
     console.log("Firebase user:", result.user);
 
@@ -45,7 +51,17 @@ export const loginWithGoogle = async (forceSelect = false) => {
 
   } catch (err) {
     console.error("Firebase Login Error:", err);
-    throw err;
+
+    // 🔥 better error messages
+    if (err.code === "auth/popup-blocked") {
+      throw new Error("Popup blocked. Please allow popups and try again.");
+    }
+
+    if (err.code === "auth/cancelled-popup-request") {
+      throw new Error("Login cancelled");
+    }
+
+    throw new Error(err.message || "Google login failed");
   }
 };
 
@@ -54,7 +70,7 @@ export const logoutUser = async () => {
   try {
     await signOut(auth);
 
-    // clear app session
+    // 🔥 clear only required data (safe)
     localStorage.removeItem("token");
     localStorage.removeItem("role");
 
