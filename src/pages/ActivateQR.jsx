@@ -15,6 +15,7 @@ export default function ActivateQR() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   /* ================= AUTH CHECK ================= */
   useEffect(() => {
@@ -23,6 +24,8 @@ export default function ActivateQR() {
     if (!token) {
       localStorage.setItem("redirectAfterLogin", `/activate/${id}`);
       navigate("/login");
+    } else {
+      setCheckingAuth(false);
     }
   }, [id, navigate]);
 
@@ -71,7 +74,6 @@ export default function ActivateQR() {
 
       alert("QR Activated Successfully ✅");
 
-      // 🔥 clear redirect
       localStorage.removeItem("redirectAfterLogin");
 
       navigate(`/profile/${id}`);
@@ -84,6 +86,16 @@ export default function ActivateQR() {
     }
   };
 
+  /* ================= LOADING SCREEN ================= */
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        Checking authentication...
+      </div>
+    );
+  }
+
+  /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
 
