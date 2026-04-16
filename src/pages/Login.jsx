@@ -12,7 +12,7 @@ export default function Login() {
 
       const user = await loginWithGoogle();
 
-      const res = await fetch("${API_URL}/google-login", {
+      const res = await fetch("https://qr-alert-backend.onrender.com/google-login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
