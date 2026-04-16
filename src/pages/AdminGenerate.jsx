@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
+
 export default function AdminGenerate() {
   const navigate = useNavigate();
 
@@ -10,26 +11,41 @@ export default function AdminGenerate() {
 
   const token = localStorage.getItem("token");
 
+  /* ================= GENERATE ================= */
   const handleGenerate = async () => {
     try {
       setLoading(true);
 
-      const res = await fetch("${API_URL}/bulk-create", {
+      if (!token) {
+        alert("Please login");
+        navigate("/login");
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/bulk-create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: token,
         },
-        body: JSON.stringify({ count }),
+        body: JSON.stringify({ count: Number(count) }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid server response");
+      }
 
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to generate");
+      }
 
       setGenerated(data);
 
     } catch (err) {
+      console.error(err);
       alert(err.message || "Failed to generate");
     } finally {
       setLoading(false);
@@ -66,7 +82,7 @@ export default function AdminGenerate() {
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="bg-gradient-to-r from-orange-500 to-pink-500 px-6 py-2 rounded"
+          className="bg-gradient-to-r from-orange-500 to-pink-500 px-6 py-2 rounded font-semibold disabled:opacity-50"
         >
           {loading ? "Generating..." : "Generate"}
         </button>

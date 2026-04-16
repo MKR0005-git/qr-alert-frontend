@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { API_URL } from "../config";
+
 export default function Profile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -11,26 +12,29 @@ export default function Profile() {
 
   /* ================= FETCH ================= */
   useEffect(() => {
-    fetch(`${API_URL}/qr-data/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error("Fetch failed");
-        return res.json();
-      })
-      .then(res => {
-        setData(res);
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`${API_URL}/qr-data/${id}`);
 
-        // popup only for activated QR
-        if (res.isActivated) {
+        if (!res.ok) throw new Error("Fetch failed");
+
+        const json = await res.json();
+        setData(json);
+
+        if (json.isActivated) {
           setTimeout(() => setShowPopup(true), 2000);
         }
-      })
-      .catch(err => {
-        console.log(err);
+
+      } catch (err) {
+        console.error(err);
         setError(true);
-      });
+      }
+    };
+
+    fetchData();
   }, [id]);
 
-  /* ================= 🚨 EMERGENCY ================= */
+  /* ================= EMERGENCY ================= */
   const handleEmergency = async () => {
     let locationText = "⚠️ Location not shared";
 
@@ -48,10 +52,10 @@ export default function Profile() {
       });
 
       const { latitude, longitude } = position.coords;
-
       locationText = `https://maps.google.com/?q=${latitude},${longitude}`;
+
     } catch (err) {
-      console.log("Location error:", err);
+      console.log("Location denied or failed");
     }
 
     const phone = (data.emergencyContact || "").replace(/\D/g, "");
@@ -65,18 +69,16 @@ ${locationText}
 
 Please help immediately!`;
 
-    // WhatsApp
-    window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
-      "_self"
-    );
+    /* 🔥 WHATSAPP */
+    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, "_blank");
 
-    // Email backup
+    /* 🔥 EMAIL BACKUP */
     if (data.emergencyEmail) {
       setTimeout(() => {
         window.location.href =
           `mailto:${data.emergencyEmail}?subject=🚨 Emergency Alert&body=${encodeURIComponent(message)}`;
-      }, 2000);
+      }, 1500);
     }
   };
 
@@ -98,7 +100,7 @@ Please help immediately!`;
     );
   }
 
-  /* ================= 🔥 NOT ACTIVATED UI ================= */
+  /* ================= NOT ACTIVATED ================= */
   if (!data.isActivated) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
@@ -132,7 +134,7 @@ Please help immediately!`;
     );
   }
 
-  /* ================= ✅ ACTIVATED UI ================= */
+  /* ================= ACTIVATED ================= */
   return (
     <div className="min-h-screen bg-black text-white relative flex items-center justify-center p-4">
 
@@ -162,7 +164,7 @@ Please help immediately!`;
 
           <button
             onClick={handleEmergency}
-            className="bg-red-600 py-4 rounded-xl text-center font-bold text-lg"
+            className="bg-red-600 py-4 rounded-xl text-center font-bold text-lg hover:scale-105 transition"
           >
             🚨 SEND EMERGENCY ALERT
           </button>
@@ -193,6 +195,7 @@ Please help immediately!`;
       {/* POPUP */}
       {showPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+
           <div className="bg-[#111827] p-6 rounded-xl border border-red-500 w-[300px] text-center">
 
             <h2 className="text-lg font-bold mb-4 text-red-400">
@@ -225,6 +228,7 @@ Please help immediately!`;
             </div>
 
           </div>
+
         </div>
       )}
     </div>

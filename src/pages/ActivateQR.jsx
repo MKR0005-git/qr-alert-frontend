@@ -16,12 +16,11 @@ export default function ActivateQR() {
 
   const [loading, setLoading] = useState(false);
 
-  /* 🔥 AUTO LOGIN CHECK */
+  /* ================= AUTH CHECK ================= */
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      // save redirect path
       localStorage.setItem("redirectAfterLogin", `/activate/${id}`);
       navigate("/login");
     }
@@ -37,7 +36,6 @@ export default function ActivateQR() {
       return;
     }
 
-    /* 🔥 VALIDATION */
     if (
       !form.name ||
       !form.phone ||
@@ -51,19 +49,21 @@ export default function ActivateQR() {
     try {
       setLoading(true);
 
-      const res = await fetch(
-        `${API_URL}/activate-qr/${id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token,
-          },
-          body: JSON.stringify(form),
-        }
-      );
+      const res = await fetch(`${API_URL}/activate-qr/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify(form),
+      });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid server response");
+      }
 
       if (!res.ok) {
         throw new Error(data.error || "Activation failed");
@@ -71,10 +71,13 @@ export default function ActivateQR() {
 
       alert("QR Activated Successfully ✅");
 
+      // 🔥 clear redirect
+      localStorage.removeItem("redirectAfterLogin");
+
       navigate(`/profile/${id}`);
 
     } catch (err) {
-      console.log(err);
+      console.error(err);
       alert(err.message || "Something went wrong");
     } finally {
       setLoading(false);
@@ -86,7 +89,7 @@ export default function ActivateQR() {
 
       {/* 🔙 BACK */}
       <button
-        onClick={() => navigate("/")}
+        onClick={() => navigate(-1)}
         className="absolute top-6 left-6 text-gray-400 hover:text-white text-sm"
       >
         ← Back

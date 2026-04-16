@@ -4,14 +4,52 @@ import { API_URL } from "../config";
 
 export default function AdminQRList() {
   const [qrs, setQrs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const token = localStorage.getItem("token");
+
+  /* ================= FETCH ================= */
   useEffect(() => {
-    fetch("${API_URL}/all-qrs")
-      .then(res => res.json())
-      .then(setQrs)
-      .catch(console.log);
-  }, []);
+    const fetchQrs = async () => {
+      try {
+        const res = await fetch(`${API_URL}/all-qrs`, {
+          headers: {
+            Authorization: token,
+          },
+        });
+
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          throw new Error("Invalid server response");
+        }
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to fetch QRs");
+        }
+
+        setQrs(data);
+
+      } catch (err) {
+        console.error(err);
+        alert(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQrs();
+  }, [token]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0B0F19] text-white">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white p-6">
@@ -28,6 +66,11 @@ export default function AdminQRList() {
         All QR Codes
       </h1>
 
+      {/* EMPTY */}
+      {qrs.length === 0 && (
+        <p className="text-gray-400">No QR codes found</p>
+      )}
+
       {/* GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 
@@ -37,7 +80,7 @@ export default function AdminQRList() {
             className="bg-[#111827] p-5 rounded-xl border border-gray-800 text-center"
           >
 
-            {/* QR IMAGE */}
+            {/* QR */}
             <img
               src={`${API_URL}/generate-qr/${qr._id}`}
               className="mx-auto mb-4 w-32 bg-white p-2 rounded"
@@ -62,27 +105,18 @@ export default function AdminQRList() {
               Scans: {qr.scans}
             </p>
 
-            {/* 🔥 DOWNLOAD SIZES */}
+            {/* DOWNLOAD */}
             <div className="flex justify-center gap-2 mt-3 text-xs">
 
-              <a
-                href={`${API_URL}/download-qr/${qr._id}/6`}
-                className="bg-orange-500 px-2 py-1 rounded"
-              >
+              <a href={`${API_URL}/download-qr/${qr._id}/6`} className="bg-orange-500 px-2 py-1 rounded">
                 6x6
               </a>
 
-              <a
-                href={`${API_URL}/download-qr/${qr._id}/8`}
-                className="bg-pink-500 px-2 py-1 rounded"
-              >
+              <a href={`${API_URL}/download-qr/${qr._id}/8`} className="bg-pink-500 px-2 py-1 rounded">
                 8x8
               </a>
 
-              <a
-                href={`${API_URL}/download-qr/${qr._id}/12`}
-                className="bg-purple-500 px-2 py-1 rounded"
-              >
+              <a href={`${API_URL}/download-qr/${qr._id}/12`} className="bg-purple-500 px-2 py-1 rounded">
                 12x12
               </a>
 
