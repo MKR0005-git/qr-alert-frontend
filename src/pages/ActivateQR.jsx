@@ -1,0 +1,137 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+
+export default function ActivateQR() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    bloodGroup: "",
+    emergencyContact: "",
+    emergencyEmail: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  /* 🔥 AUTO LOGIN CHECK */
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      // save redirect path
+      localStorage.setItem("redirectAfterLogin", `/activate/${id}`);
+      navigate("/login");
+    }
+  }, [id, navigate]);
+
+  /* ================= SUBMIT ================= */
+  const handleSubmit = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login first");
+      navigate("/login");
+      return;
+    }
+
+    /* 🔥 VALIDATION */
+    if (
+      !form.name ||
+      !form.phone ||
+      !form.bloodGroup ||
+      !form.emergencyContact
+    ) {
+      alert("Please fill all required fields");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        `http://192.168.1.2:5000/activate-qr/${id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+          body: JSON.stringify(form),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Activation failed");
+      }
+
+      alert("QR Activated Successfully ✅");
+
+      navigate(`/profile/${id}`);
+
+    } catch (err) {
+      console.log(err);
+      alert(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+
+      {/* 🔙 BACK */}
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-6 left-6 text-gray-400 hover:text-white text-sm"
+      >
+        ← Back
+      </button>
+
+      {/* CARD */}
+      <div className="bg-[#111827] p-6 rounded-xl w-[350px] border border-orange-500 shadow-xl">
+
+        <h2 className="text-xl font-bold mb-5 text-center text-orange-400">
+          Activate QR
+        </h2>
+
+        {/* INPUTS */}
+        {[
+          { key: "name", label: "Full Name" },
+          { key: "phone", label: "Phone Number" },
+          { key: "bloodGroup", label: "Blood Group" },
+          { key: "emergencyContact", label: "Emergency Contact" },
+          { key: "emergencyEmail", label: "Emergency Email (optional)" },
+        ].map((field) => (
+          <input
+            key={field.key}
+            placeholder={field.label}
+            type={field.key === "emergencyEmail" ? "email" : "text"}
+            className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded focus:outline-none focus:border-orange-500"
+            onChange={(e) =>
+              setForm({ ...form, [field.key]: e.target.value })
+            }
+          />
+        ))}
+
+        {/* BUTTON */}
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full bg-gradient-to-r from-orange-500 to-pink-500 py-3 rounded-lg font-semibold hover:scale-105 transition disabled:opacity-50"
+        >
+          {loading ? "Activating..." : "Activate QR"}
+        </button>
+
+        {/* INFO */}
+        <p className="text-xs text-gray-500 text-center mt-4">
+          Login required to activate QR
+        </p>
+
+      </div>
+    </div>
+  );
+}
