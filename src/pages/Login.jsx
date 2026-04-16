@@ -1,7 +1,9 @@
-import { loginWithGoogle } from "../firebase";
+import { auth, provider } from "../firebase";
+import { signInWithPopup } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { API_URL } from "../config";
+
 export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -10,9 +12,11 @@ export default function Login() {
     try {
       setLoading(true);
 
-      const user = await loginWithGoogle();
+      // 🔥 FIX: use popup instead of redirect
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
-      const res = await fetch("https://qr-alert-backend.onrender.com/google-login", {
+      const res = await fetch(`${API_URL}/google-login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -23,26 +27,42 @@ export default function Login() {
         }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid server response");
+      }
 
-      /* 🔥 CLEAR + SAVE SESSION */
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+
+      // ❗ IMPORTANT: don’t clear everything blindly
+      const redirect = localStorage.getItem("redirectAfterLogin");
+
       localStorage.clear();
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
 
-      /* 🔥 REDIRECT BACK LOGIC */
-      const redirect = localStorage.getItem("redirectAfterLogin");
-
+      // 🔥 FIX: restore redirect AFTER clearing
       if (redirect) {
+        localStorage.setItem("redirectAfterLogin", redirect);
+      }
+
+      // 🔥 REDIRECT FLOW
+      const finalRedirect = localStorage.getItem("redirectAfterLogin");
+
+      if (finalRedirect) {
         localStorage.removeItem("redirectAfterLogin");
-        navigate(redirect);
+        navigate(finalRedirect);
       } else {
         navigate("/");
       }
 
     } catch (err) {
-      console.log(err);
-      alert("Login failed");
+      console.error(err);
+      alert(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
