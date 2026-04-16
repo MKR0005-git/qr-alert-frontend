@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { API_URL } from "../config";
 export default function CreateQR() {
   const [form, setForm] = useState({
     name: "",
@@ -15,7 +15,7 @@ export default function CreateQR() {
 
     try {
       // 1. Save data
-      const res = await fetch("http://192.168.1.2:5000/create-qr", {
+      const res = await fetch("${API_URL}/create-qr", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -27,7 +27,7 @@ export default function CreateQR() {
 
       // 2. Generate QR
       const qrRes = await fetch(
-        `http://192.168.1.2:5000/generate-qr/${data.id}`
+        `${API_URL}/generate-qr/${data.id}`
       );
 
       const qrHtml = await qrRes.text();

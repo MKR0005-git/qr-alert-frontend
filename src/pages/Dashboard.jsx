@@ -20,14 +20,14 @@ export default function Dashboard() {
     }
 
     if (role === "admin") {
-      fetch("http://192.168.1.2:5000/admin-analytics", {
+      fetch("${API_URL}/admin-analytics", {
         headers: { Authorization: token },
       })
         .then(res => res.json())
         .then(setStats)
         .finally(() => setLoading(false));
     } else {
-      fetch("http://192.168.1.2:5000/my-qrs", {
+      fetch("${API_URL}/my-qrs", {
         headers: { Authorization: token },
       })
         .then(res => res.json())
@@ -102,7 +102,7 @@ export default function Dashboard() {
 
               <button
                 onClick={() =>
-                  window.open("http://192.168.1.2:5000/download-all-qrs/6")
+                  window.open("${API_URL}/download-all-qrs/6")
                 }
                 className="bg-green-500 px-4 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
               >
@@ -111,7 +111,7 @@ export default function Dashboard() {
 
               <button
                 onClick={() =>
-                  window.open("http://192.168.1.2:5000/download-all-qrs/8")
+                  window.open("${API_URL}/download-all-qrs/8")
                 }
                 className="bg-blue-500 px-4 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
               >
@@ -120,7 +120,7 @@ export default function Dashboard() {
 
               <button
                 onClick={() =>
-                  window.open("http://192.168.1.2:5000/download-all-qrs/12")
+                  window.open("${API_URL}/download-all-qrs/12")
                 }
                 className="bg-purple-500 px-4 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
               >

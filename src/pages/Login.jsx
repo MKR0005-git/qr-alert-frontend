@@ -1,7 +1,7 @@
 import { loginWithGoogle } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-
+import { API_URL } from "../config";
 export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -12,7 +12,7 @@ export default function Login() {
 
       const user = await loginWithGoogle();
 
-      const res = await fetch("http://192.168.1.2:5000/google-login", {
+      const res = await fetch("${API_URL}/google-login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

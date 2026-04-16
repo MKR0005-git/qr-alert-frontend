@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { API_URL } from "../config";
 export default function AdminGenerate() {
   const navigate = useNavigate();
 
@@ -14,7 +14,7 @@ export default function AdminGenerate() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://192.168.1.2:5000/bulk-create", {
+      const res = await fetch("${API_URL}/bulk-create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -90,7 +90,7 @@ export default function AdminGenerate() {
               >
 
                 <img
-                  src={`http://192.168.1.2:5000/generate-qr/${qr._id}`}
+                  src={`${API_URL}/generate-qr/${qr._id}`}
                   className="mx-auto mb-3 w-32 bg-white p-2 rounded"
                 />
 

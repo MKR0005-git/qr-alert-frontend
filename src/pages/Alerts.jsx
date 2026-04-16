@@ -7,7 +7,7 @@ export default function Alerts() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch("http://192.168.1.2:5000/my-qrs", {
+    fetch("${API_URL}/my-qrs", {
       headers: { Authorization: token },
     })
       .then(res => res.json())

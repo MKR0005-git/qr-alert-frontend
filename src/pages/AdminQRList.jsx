@@ -6,7 +6,7 @@ export default function AdminQRList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://192.168.1.2:5000/all-qrs")
+    fetch("${API_URL}/all-qrs")
       .then(res => res.json())
       .then(setQrs)
       .catch(console.log);
@@ -38,7 +38,7 @@ export default function AdminQRList() {
 
             {/* QR IMAGE */}
             <img
-              src={`http://192.168.1.2:5000/generate-qr/${qr._id}`}
+              src={`${API_URL}/generate-qr/${qr._id}`}
               className="mx-auto mb-4 w-32 bg-white p-2 rounded"
             />
 
@@ -65,21 +65,21 @@ export default function AdminQRList() {
             <div className="flex justify-center gap-2 mt-3 text-xs">
 
               <a
-                href={`http://192.168.1.2:5000/download-qr/${qr._id}/6`}
+                href={`${API_URL}/download-qr/${qr._id}/6`}
                 className="bg-orange-500 px-2 py-1 rounded"
               >
                 6x6
               </a>
 
               <a
-                href={`http://192.168.1.2:5000/download-qr/${qr._id}/8`}
+                href={`${API_URL}/download-qr/${qr._id}/8`}
                 className="bg-pink-500 px-2 py-1 rounded"
               >
                 8x8
               </a>
 
               <a
-                href={`http://192.168.1.2:5000/download-qr/${qr._id}/12`}
+                href={`${API_URL}/download-qr/${qr._id}/12`}
                 className="bg-purple-500 px-2 py-1 rounded"
               >
                 12x12

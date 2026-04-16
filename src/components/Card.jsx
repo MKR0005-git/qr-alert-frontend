@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { API_URL } from "../config";
 export default function Card({ id }) {
   const [data, setData] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -11,7 +11,7 @@ export default function Card({ id }) {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    fetch(`http://192.168.1.2:5000/qr-data/${id}`)
+    fetch(`${API_URL}/qr-data/${id}`)
       .then(res => res.json())
       .then(res => {
         setData(res);
@@ -22,7 +22,7 @@ export default function Card({ id }) {
   const handleDelete = async () => {
     if (!confirm("Delete this QR?")) return;
 
-    await fetch(`http://192.168.1.2:5000/delete-qr/${id}`, {
+    await fetch(`${API_URL}/delete-qr/${id}`, {
       method: "DELETE",
       headers: { Authorization: token },
     });
@@ -31,7 +31,7 @@ export default function Card({ id }) {
   };
 
   const handleUpdate = async () => {
-    await fetch(`http://192.168.1.2:5000/update-qr/${id}`, {
+    await fetch(`${API_URL}/update-qr/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export default function Card({ id }) {
 
         {/* QR */}
         <img
-          src={`http://192.168.1.2:5000/generate-qr/${id}`}
+          src={`${API_URL}/generate-qr/${id}`}
           className="mx-auto mb-4 w-40 cursor-pointer hover:scale-105 transition"
           onClick={() => setZoomOpen(true)}
         />
@@ -75,21 +75,21 @@ export default function Card({ id }) {
           <div className="flex justify-center gap-2 text-xs">
 
             <a
-              href={`http://192.168.1.2:5000/download-qr/${id}/6`}
+              href={`${API_URL}/download-qr/${id}/6`}
               className="bg-orange-500 px-2 py-1 rounded hover:scale-105 transition"
             >
               6x6
             </a>
 
             <a
-              href={`http://192.168.1.2:5000/download-qr/${id}/8`}
+              href={`${API_URL}/download-qr/${id}/8`}
               className="bg-pink-500 px-2 py-1 rounded hover:scale-105 transition"
             >
               8x8
             </a>
 
             <a
-              href={`http://192.168.1.2:5000/download-qr/${id}/12`}
+              href={`${API_URL}/download-qr/${id}/12`}
               className="bg-purple-500 px-2 py-1 rounded hover:scale-105 transition"
             >
               12x12
@@ -134,7 +134,7 @@ export default function Card({ id }) {
           onClick={() => setZoomOpen(false)}
         >
           <img
-            src={`http://192.168.1.2:5000/generate-qr/${id}`}
+            src={`${API_URL}/generate-qr/${id}`}
             className="w-80 md:w-[400px] bg-white p-4 rounded-xl"
           />
         </div>

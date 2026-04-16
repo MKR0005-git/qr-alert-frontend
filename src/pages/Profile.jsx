@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-
+import { API_URL } from "../config";
 export default function Profile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ export default function Profile() {
 
   /* ================= FETCH ================= */
   useEffect(() => {
-    fetch(`http://192.168.1.2:5000/qr-data/${id}`)
+    fetch(`${API_URL}/qr-data/${id}`)
       .then(res => {
         if (!res.ok) throw new Error("Fetch failed");
         return res.json();

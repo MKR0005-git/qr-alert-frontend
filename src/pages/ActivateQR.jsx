@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { API_URL } from "../config";
 
 export default function ActivateQR() {
   const { id } = useParams();
@@ -51,7 +52,7 @@ export default function ActivateQR() {
       setLoading(true);
 
       const res = await fetch(
-        `http://192.168.1.2:5000/activate-qr/${id}`,
+        `${API_URL}/activate-qr/${id}`,
         {
           method: "POST",
           headers: {

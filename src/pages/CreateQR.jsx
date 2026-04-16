@@ -37,7 +37,7 @@ export default function CreateQR() {
 
       setLoading(true);
 
-      const res = await fetch("http://192.168.1.2:5000/create-qr", {
+      const res = await fetch("${API_URL}/create-qr", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
