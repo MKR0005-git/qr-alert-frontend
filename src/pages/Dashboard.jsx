@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar";
 import Card from "../components/Card";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-
+import { API_URL } from "../config";
 export default function Dashboard() {
   const navigate = useNavigate();
   const [qrs, setQrs] = useState([]);

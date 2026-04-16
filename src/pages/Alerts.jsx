@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-
+import { API_URL } from "../config";
 export default function Alerts() {
   const [data, setData] = useState([]);
 
