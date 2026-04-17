@@ -8,7 +8,6 @@ export default function Profile() {
 
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
 
   /* ================= FETCH ================= */
   useEffect(() => {
@@ -20,10 +19,6 @@ export default function Profile() {
         const json = await res.json();
         setData(json);
 
-        if (json?.isActivated) {
-          setTimeout(() => setShowPopup(true), 1500);
-        }
-
       } catch (err) {
         console.error(err);
         setError(true);
@@ -33,20 +28,23 @@ export default function Profile() {
     fetchData();
   }, [id]);
 
-  /* ================= EMERGENCY ================= */
-  const handleEmergency = async () => {
-    let locationText = "Location not available";
-
+  /* ================= LOCATION ================= */
+  const getLocation = async () => {
     try {
       const position = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
 
       const { latitude, longitude } = position.coords;
-      locationText = `https://maps.google.com/?q=${latitude},${longitude}`;
+      return `https://maps.google.com/?q=${latitude},${longitude}`;
     } catch {
-      console.log("Location denied");
+      return "Location not available";
     }
+  };
+
+  /* ================= WHATSAPP ================= */
+  const sendWhatsApp = async () => {
+    const location = await getLocation();
 
     const phone = (data?.emergencyContact || "").replace(/\D/g, "");
 
@@ -56,28 +54,40 @@ Name: ${data?.name}
 Blood Group: ${data?.bloodGroup}
 
 📍 Location:
-${locationText}
+${location}
 
 ⚠️ Please contact immediately`;
 
-    // ✅ WhatsApp priority
     if (phone) {
       window.location.href =
         `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-      return;
+    } else {
+      alert("No emergency contact number");
     }
+  };
 
-    // ✅ Email fallback (NOW PREFILLED)
+  /* ================= EMAIL ================= */
+  const sendEmail = async () => {
+    const location = await getLocation();
+
+    const subject = encodeURIComponent("🚨 Emergency Alert");
+
+    const body = encodeURIComponent(`EMERGENCY ALERT
+
+Name: ${data?.name}
+Blood Group: ${data?.bloodGroup}
+
+📍 Location:
+${location}
+
+Please contact immediately`);
+
     if (data?.emergencyEmail) {
-      const subject = encodeURIComponent("🚨 Emergency Alert");
-      const body = encodeURIComponent(message);
-
       window.location.href =
         `mailto:${data.emergencyEmail}?subject=${subject}&body=${body}`;
-      return;
+    } else {
+      alert("No emergency email available");
     }
-
-    alert("No emergency contact available");
   };
 
   /* ================= ERROR ================= */
@@ -115,7 +125,7 @@ ${locationText}
           </h2>
 
           <p className="text-gray-400 text-sm mb-5">
-            This QR is not linked yet. Please activate to use emergency features.
+            This QR is not linked yet.
           </p>
 
           <button
@@ -129,18 +139,18 @@ ${locationText}
     );
   }
 
-  /* ================= ACTIVATED ================= */
+  /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-black text-white relative flex items-center justify-center p-4">
 
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-6 left-6 text-gray-400 hover:text-white text-sm"
+        className="absolute top-6 left-6 text-gray-400"
       >
         ← Back
       </button>
 
-      <div className="w-full max-w-md bg-[#111827] border border-red-500 rounded-2xl shadow-xl p-6">
+      <div className="w-full max-w-md bg-[#111827] border border-red-500 rounded-2xl p-6">
 
         <div className="text-center mb-6">
           <h1 className="text-red-500 font-bold text-lg">
@@ -155,13 +165,15 @@ ${locationText}
 
         <div className="flex flex-col gap-3">
 
+          {/* WHATSAPP */}
           <button
-            onClick={handleEmergency}
-            className="bg-red-600 py-4 rounded-xl text-center font-bold text-lg hover:scale-105 transition"
+            onClick={sendWhatsApp}
+            className="bg-red-600 py-4 rounded-xl font-bold text-lg"
           >
-            🚨 SEND EMERGENCY ALERT
+            🚨 Send Emergency Alert (WhatsApp)
           </button>
 
+          {/* CALL */}
           {data.emergencyContact && (
             <a
               href={`tel:${data.emergencyContact}`}
@@ -171,13 +183,13 @@ ${locationText}
             </a>
           )}
 
-          {/* 🔥 FIXED EMAIL BUTTON */}
+          {/* EMAIL */}
           {data.emergencyEmail && (
             <button
-              onClick={handleEmergency}
-              className="bg-blue-500 py-3 rounded-xl text-center font-semibold"
+              onClick={sendEmail}
+              className="bg-blue-500 py-3 rounded-xl font-semibold"
             >
-              📧 Send Email
+              📧 Send Emergency Alert (Email)
             </button>
           )}
 
@@ -186,47 +198,8 @@ ${locationText}
         <p className="text-xs text-gray-500 text-center mt-5">
           ⚠️ Tap alert button to share live location
         </p>
+
       </div>
-
-      {/* POPUP */}
-      {showPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
-
-          <div className="bg-[#111827] p-6 rounded-xl border border-red-500 w-[300px] text-center">
-
-            <h2 className="text-lg font-bold mb-4 text-red-400">
-              🚨 Send Emergency Alert?
-            </h2>
-
-            <p className="text-sm text-gray-400 mb-5">
-              This will send your location via WhatsApp / Email
-            </p>
-
-            <div className="flex gap-3">
-
-              <button
-                onClick={() => setShowPopup(false)}
-                className="w-full bg-gray-700 py-2 rounded"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowPopup(false);
-                  handleEmergency();
-                }}
-                className="w-full bg-red-600 py-2 rounded font-semibold"
-              >
-                YES
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-      )}
     </div>
   );
 }
