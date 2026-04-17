@@ -11,10 +11,21 @@ import ActivateQR from "./pages/ActivateQR";
 import AdminGenerate from "./pages/AdminGenerate";
 import AdminQRList from "./pages/AdminQRList";
 
-/* 🔒 AUTH CHECK */
+/* 🔒 USER AUTH */
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" />;
+};
+
+/* 🔐 ADMIN AUTH */
+const AdminRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  if (!token) return <Navigate to="/login" />;
+  if (role !== "admin") return <Navigate to="/" />;
+
+  return children;
 };
 
 export default function App() {
@@ -28,7 +39,7 @@ export default function App() {
         <Route path="/activate/:id" element={<ActivateQR />} />
         <Route path="/login" element={<Login />} />
 
-        {/* ================= PROTECTED ================= */}
+        {/* ================= USER ================= */}
 
         <Route
           path="/"
@@ -57,34 +68,41 @@ export default function App() {
           }
         />
 
-        {/* 🔥 ADMIN ROUTES */}
+        {/* ================= ADMIN ================= */}
 
         <Route
           path="/admin/generate"
           element={
-            <PrivateRoute>
+            <AdminRoute>
               <AdminGenerate />
-            </PrivateRoute>
+            </AdminRoute>
           }
         />
 
         <Route
           path="/admin/qrs"
           element={
-            <PrivateRoute>
+            <AdminRoute>
               <AdminQRList />
-            </PrivateRoute>
+            </AdminRoute>
           }
         />
 
-        {/* ================= FALLBACK ================= */}
+        {/* ================= 404 ================= */}
 
         <Route
           path="*"
           element={
             <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
-              <h1 className="text-2xl font-bold mb-2">404</h1>
-              <p className="text-gray-400">Page Not Found</p>
+              <h1 className="text-3xl font-bold mb-2">404</h1>
+              <p className="text-gray-400 mb-4">Page Not Found</p>
+
+              <button
+                onClick={() => window.location.href = "/"}
+                className="bg-blue-500 px-4 py-2 rounded"
+              >
+                Go Home
+              </button>
             </div>
           }
         />

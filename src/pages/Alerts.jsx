@@ -24,7 +24,15 @@ export default function Alerts() {
         },
       });
 
-      const result = await res.json();
+      // 🔥 FIX: avoid JSON crash
+      const text = await res.text();
+
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        throw new Error("Server error (not JSON)");
+      }
 
       if (!res.ok) {
         throw new Error(result.error || "Failed to fetch alerts");
@@ -33,8 +41,8 @@ export default function Alerts() {
       setData(result || []);
 
     } catch (err) {
-      console.error(err);
-      alert(err.message || "Something went wrong");
+      console.error("ALERT ERROR:", err);
+      setData([]); // prevent crash
     } finally {
       setLoading(false);
     }
