@@ -9,39 +9,42 @@ export default function Alerts() {
   const navigate = useNavigate();
 
   /* ================= FETCH ================= */
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-        if (!token) {
-          navigate("/login");
-          return;
-        }
-
-        const res = await fetch(`${API_URL}/my-qrs`, {
-          headers: {
-            Authorization: `Bearer ${token}`, // ✅ CORRECT
-          },
-        });
-
-        const result = await res.json();
-
-        if (!res.ok) {
-          throw new Error(result.error || "Failed to fetch alerts");
-        }
-
-        setData(result || []);
-
-      } catch (err) {
-        console.error(err);
-        alert(err.message || "Something went wrong");
-      } finally {
-        setLoading(false);
+      if (!token) {
+        navigate("/login");
+        return;
       }
-    };
 
+      const res = await fetch(`${API_URL}/my-qrs`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "Failed to fetch alerts");
+      }
+
+      setData(result || []);
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= AUTO REFRESH ================= */
+  useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
   }, [navigate]);
 
   /* ================= LOADING ================= */
@@ -70,54 +73,73 @@ export default function Alerts() {
         ) : (
           <div className="space-y-6">
 
-            {data.map((qr) => (
-              <div
-                key={qr._id}
-                className="bg-[#111827] border border-gray-800 p-5 rounded-xl shadow hover:shadow-lg transition"
-              >
+            {data.map((qr) => {
+              const latestScan =
+                qr.scanHistory && qr.scanHistory.length > 0
+                  ? qr.scanHistory[qr.scanHistory.length - 1]
+                  : null;
 
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold">
-                    {qr.name || "Unnamed"}
-                  </h2>
+              return (
+                <div
+                  key={qr._id}
+                  className="bg-[#111827] border border-gray-800 p-5 rounded-xl shadow hover:shadow-lg transition"
+                >
 
-                  <span className="text-sm text-orange-400 font-bold">
-                    {qr.scans || 0} scans
-                  </span>
-                </div>
+                  {/* HEADER */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold">
+                      {qr.name || "Unnamed"}
+                    </h2>
 
-                <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                    <span className="text-sm text-orange-400 font-bold">
+                      {qr.scans || 0} scans
+                    </span>
+                  </div>
 
-                  {qr.scanHistory && qr.scanHistory.length > 0 ? (
-                    qr.scanHistory
-                      .slice()
-                      .reverse()
-                      .map((scan, i) => (
-                        <div
-                          key={i}
-                          className="flex justify-between items-center bg-[#0B0F19] px-4 py-2 rounded-lg border border-gray-800 text-sm"
-                        >
-                          <span className="text-gray-400">
-                            📱 {scan.device || "Unknown"}
-                          </span>
-
-                          <span className="text-gray-500">
-                            {scan.time
-                              ? new Date(scan.time).toLocaleString()
-                              : "Unknown time"}
-                          </span>
-                        </div>
-                      ))
-                  ) : (
-                    <p className="text-gray-500 text-sm">
-                      No scan history
-                    </p>
+                  {/* 🔥 LATEST ALERT */}
+                  {latestScan && (
+                    <div className="bg-red-900/40 border border-red-700 p-3 rounded-lg mb-3 text-sm">
+                      <span className="text-red-400 font-semibold">
+                        🚨 Latest Scan:
+                      </span>{" "}
+                      {new Date(latestScan.time).toLocaleString()}
+                    </div>
                   )}
 
-                </div>
+                  {/* HISTORY */}
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
 
-              </div>
-            ))}
+                    {qr.scanHistory && qr.scanHistory.length > 0 ? (
+                      qr.scanHistory
+                        .slice()
+                        .reverse()
+                        .map((scan, i) => (
+                          <div
+                            key={i}
+                            className="flex justify-between items-center bg-[#0B0F19] px-4 py-2 rounded-lg border border-gray-800 text-sm"
+                          >
+                            <span className="text-gray-400">
+                              📱 {scan.device || "Unknown"}
+                            </span>
+
+                            <span className="text-gray-500">
+                              {scan.time
+                                ? new Date(scan.time).toLocaleString()
+                                : "Unknown time"}
+                            </span>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="text-gray-500 text-sm">
+                        No scan history
+                      </p>
+                    )}
+
+                  </div>
+
+                </div>
+              );
+            })}
 
           </div>
         )}

@@ -27,6 +27,32 @@ export default function Card({ id, onDelete }) {
     fetchData();
   }, [id]);
 
+  /* ================= DOWNLOAD FIX ================= */
+  const handleDownload = async (size) => {
+    try {
+      const res = await fetch(`${API_URL}/download-qr/${id}/${size}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Download failed");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `QR-${id}-${size}.png`;
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   /* ================= DELETE ================= */
   const handleDelete = async () => {
     if (!window.confirm("Delete this QR?")) return;
@@ -43,7 +69,6 @@ export default function Card({ id, onDelete }) {
         throw new Error("Delete failed");
       }
 
-      // 🔥 IMPORTANT FIX: remove locally instead of reload
       if (onDelete) {
         onDelete(id);
       }
@@ -83,6 +108,7 @@ export default function Card({ id, onDelete }) {
     <>
       <div className="bg-[#111827] border border-gray-800 p-5 rounded-xl shadow hover:scale-105 transition text-center">
 
+        {/* QR IMAGE */}
         <img
           src={`${API_URL}/generate-qr/${id}`}
           className="mx-auto mb-4 w-40 cursor-pointer hover:scale-105 transition"
@@ -99,16 +125,18 @@ export default function Card({ id, onDelete }) {
           Scans: <span className="text-orange-400">{data.scans}</span>
         </p>
 
+        {/* DOWNLOAD */}
         <div className="mb-3">
           <p className="text-xs text-gray-400 mb-2">Download Size</p>
 
           <div className="flex justify-center gap-2 text-xs">
-            <a href={`${API_URL}/download-qr/${id}/6`} className="bg-orange-500 px-2 py-1 rounded">6x6</a>
-            <a href={`${API_URL}/download-qr/${id}/8`} className="bg-pink-500 px-2 py-1 rounded">8x8</a>
-            <a href={`${API_URL}/download-qr/${id}/12`} className="bg-purple-500 px-2 py-1 rounded">12x12</a>
+            <button onClick={() => handleDownload(6)} className="bg-orange-500 px-2 py-1 rounded">6x6</button>
+            <button onClick={() => handleDownload(8)} className="bg-pink-500 px-2 py-1 rounded">8x8</button>
+            <button onClick={() => handleDownload(12)} className="bg-purple-500 px-2 py-1 rounded">12x12</button>
           </div>
         </div>
 
+        {/* ACTIONS */}
         <div className="flex flex-col gap-2">
 
           <button
@@ -137,7 +165,7 @@ export default function Card({ id, onDelete }) {
         </div>
       </div>
 
-      {/* ZOOM */}
+      {/* ================= ZOOM ================= */}
       {zoomOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
@@ -150,7 +178,7 @@ export default function Card({ id, onDelete }) {
         </div>
       )}
 
-      {/* EDIT */}
+      {/* ================= EDIT ================= */}
       {editOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
 
@@ -158,24 +186,58 @@ export default function Card({ id, onDelete }) {
 
             <h2 className="text-lg font-bold mb-4">Edit QR</h2>
 
-            {[
-              { key: "name", label: "Name" },
-              { key: "phone", label: "Phone" },
-              { key: "bloodGroup", label: "Blood Group" },
-              { key: "emergencyContact", label: "Emergency Contact" },
-              { key: "emergencyEmail", label: "Emergency Email" },
-            ].map((field) => (
-              <input
-                key={field.key}
-                value={form[field.key] || ""}
-                placeholder={field.label}
-                type={field.key === "emergencyEmail" ? "email" : "text"}
-                className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
-                onChange={(e) =>
-                  setForm({ ...form, [field.key]: e.target.value })
-                }
-              />
-            ))}
+            {/* NAME */}
+            <input
+              value={form.name || ""}
+              placeholder="Name"
+              className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+
+            {/* PHONE */}
+            <input
+              value={form.phone || ""}
+              placeholder="Phone"
+              className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  phone: e.target.value.replace(/\D/g, ""),
+                })
+              }
+            />
+
+            {/* BLOOD */}
+            <input
+              value={form.bloodGroup || ""}
+              placeholder="Blood Group"
+              className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
+              onChange={(e) => setForm({ ...form, bloodGroup: e.target.value })}
+            />
+
+            {/* EMERGENCY CONTACT */}
+            <input
+              value={form.emergencyContact || ""}
+              placeholder="Emergency Contact"
+              className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  emergencyContact: e.target.value.replace(/\D/g, ""),
+                })
+              }
+            />
+
+            {/* EMAIL */}
+            <input
+              value={form.emergencyEmail || ""}
+              placeholder="Emergency Email"
+              type="email"
+              className="w-full mb-3 p-2 bg-[#0B0F19] border border-gray-700 rounded"
+              onChange={(e) =>
+                setForm({ ...form, emergencyEmail: e.target.value })
+              }
+            />
 
             <div className="flex justify-between mt-4">
               <button

@@ -37,7 +37,6 @@ export default function AdminQRList() {
         throw new Error(data.error || "Failed to fetch QRs");
       }
 
-      // 🔥 SPLIT LOGIC
       setActivated(data.filter(q => q.isActivated));
       setUnassigned(data.filter(q => !q.isActivated));
 
@@ -55,6 +54,61 @@ export default function AdminQRList() {
     const interval = setInterval(fetchQrs, 5000);
     return () => clearInterval(interval);
   }, [navigate]);
+
+  /* ================= DOWNLOAD FIX ================= */
+  const handleDownload = async (id, size) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_URL}/download-qr/${id}/${size}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Download failed");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `QR-${id}-${size}.png`;
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  /* ================= DELETE ================= */
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!confirm("Delete this QR permanently?")) return;
+
+      const res = await fetch(`${API_URL}/delete-qr/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error);
+
+      // 🔥 instant UI update
+      setActivated(prev => prev.filter(q => q._id !== id));
+      setUnassigned(prev => prev.filter(q => q._id !== id));
+
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   /* ================= CARD ================= */
   const renderCard = (qr) => (
@@ -91,17 +145,26 @@ export default function AdminQRList() {
         Scans: {qr.scans || 0}
       </p>
 
+      {/* DOWNLOAD */}
       <div className="flex justify-center gap-2 mt-3 text-xs">
-        <a href={`${API_URL}/download-qr/${qr._id}/6`} className="bg-orange-500 px-2 py-1 rounded">6x6</a>
-        <a href={`${API_URL}/download-qr/${qr._id}/8`} className="bg-pink-500 px-2 py-1 rounded">8x8</a>
-        <a href={`${API_URL}/download-qr/${qr._id}/12`} className="bg-purple-500 px-2 py-1 rounded">12x12</a>
+        <button onClick={() => handleDownload(qr._id, 6)} className="bg-orange-500 px-2 py-1 rounded">6x6</button>
+        <button onClick={() => handleDownload(qr._id, 8)} className="bg-pink-500 px-2 py-1 rounded">8x8</button>
+        <button onClick={() => handleDownload(qr._id, 12)} className="bg-purple-500 px-2 py-1 rounded">12x12</button>
       </div>
 
+      {/* ACTIONS */}
       <button
         onClick={() => navigate(`/profile/${qr._id}`)}
         className="text-blue-400 text-xs mt-3"
       >
         View Profile
+      </button>
+
+      <button
+        onClick={() => handleDelete(qr._id)}
+        className="text-red-400 text-xs mt-2"
+      >
+        Delete
       </button>
 
       <p className="text-gray-500 text-[10px] mt-2 break-all">
@@ -140,7 +203,7 @@ export default function AdminQRList() {
         </button>
       </div>
 
-      {/* ================= ACTIVATED ================= */}
+      {/* ACTIVATED */}
       <h2 className="text-2xl font-bold mb-4 text-green-400">
         Activated QRs
       </h2>
@@ -153,7 +216,7 @@ export default function AdminQRList() {
         </div>
       )}
 
-      {/* ================= UNASSIGNED ================= */}
+      {/* UNASSIGNED */}
       <h2 className="text-2xl font-bold mb-4 text-red-400">
         Unassigned QRs
       </h2>
