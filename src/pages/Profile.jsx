@@ -15,13 +15,11 @@ export default function Profile() {
     const fetchData = async () => {
       try {
         const res = await fetch(`${API_URL}/qr-data/${id}`);
-
         if (!res.ok) throw new Error("Fetch failed");
 
         const json = await res.json();
         setData(json);
 
-        // 🔥 show popup only if activated
         if (json?.isActivated) {
           setTimeout(() => setShowPopup(true), 1500);
         }
@@ -37,51 +35,39 @@ export default function Profile() {
 
   /* ================= EMERGENCY ================= */
   const handleEmergency = async () => {
-    let locationText = "⚠️ Location not shared";
+    let locationText = "Location not available";
 
     try {
       const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          resolve,
-          reject,
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0,
-          }
-        );
+        navigator.geolocation.getCurrentPosition(resolve, reject);
       });
 
       const { latitude, longitude } = position.coords;
       locationText = `https://maps.google.com/?q=${latitude},${longitude}`;
-
     } catch {
-      console.log("Location denied or failed");
+      console.log("Location denied");
     }
 
     const phone = (data?.emergencyContact || "").replace(/\D/g, "");
 
     const message = `🚨 EMERGENCY ALERT 🚨
-Person: ${data?.name}
+Name: ${data?.name}
 Blood Group: ${data?.bloodGroup}
 
-📍 Location:
-${locationText}
+Location:
+${locationText}`;
 
-Please help immediately!`;
-
-    // 🔥 WhatsApp
+    // ✅ FIX: direct redirect (mobile safe)
     if (phone) {
-      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-      window.open(waUrl, "_blank");
+      window.location.href =
+        `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      return;
     }
 
-    // 🔥 Email backup
+    // fallback email
     if (data?.emergencyEmail) {
-      setTimeout(() => {
-        window.location.href =
-          `mailto:${data.emergencyEmail}?subject=🚨 Emergency Alert&body=${encodeURIComponent(message)}`;
-      }, 1200);
+      window.location.href =
+        `mailto:${data.emergencyEmail}?subject=Emergency Alert&body=${encodeURIComponent(message)}`;
     }
   };
 
@@ -107,7 +93,6 @@ Please help immediately!`;
   if (!data.isActivated) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-
         <button
           onClick={() => navigate(-1)}
           className="absolute top-6 left-6 text-gray-400"
@@ -116,7 +101,6 @@ Please help immediately!`;
         </button>
 
         <div className="bg-[#111827] p-6 rounded-xl border border-orange-500 text-center w-[320px]">
-
           <h2 className="text-xl font-bold text-orange-400 mb-3">
             QR Not Activated
           </h2>
@@ -131,7 +115,6 @@ Please help immediately!`;
           >
             Activate Now
           </button>
-
         </div>
       </div>
     );
@@ -141,7 +124,6 @@ Please help immediately!`;
   return (
     <div className="min-h-screen bg-black text-white relative flex items-center justify-center p-4">
 
-      {/* BACK */}
       <button
         onClick={() => navigate(-1)}
         className="absolute top-6 left-6 text-gray-400 hover:text-white text-sm"
@@ -149,7 +131,6 @@ Please help immediately!`;
         ← Back
       </button>
 
-      {/* CARD */}
       <div className="w-full max-w-md bg-[#111827] border border-red-500 rounded-2xl shadow-xl p-6">
 
         <div className="text-center mb-6">
@@ -208,7 +189,7 @@ Please help immediately!`;
             </h2>
 
             <p className="text-sm text-gray-400 mb-5">
-              This will send your location via WhatsApp + Email
+              This will send your location via WhatsApp
             </p>
 
             <div className="flex gap-3">
