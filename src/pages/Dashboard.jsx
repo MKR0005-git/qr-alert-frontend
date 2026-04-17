@@ -11,6 +11,7 @@ export default function Dashboard() {
 
   const role = localStorage.getItem("role");
 
+  /* ================= FETCH ================= */
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -51,11 +52,12 @@ export default function Dashboard() {
 
   }, [navigate, role]);
 
-  /* 🔥 HANDLE DELETE (IMPORTANT FIX) */
+  /* ================= DELETE FIX ================= */
   const handleDelete = (id) => {
     setQrs(prev => prev.filter(q => q._id !== id));
   };
 
+  /* ================= LOADING ================= */
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0B0F19] text-white">
@@ -93,28 +95,68 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* ADMIN ACTIONS */}
+        {/* ================= ADMIN SECTION ================= */}
         {role === "admin" && (
-          <div className="flex flex-wrap gap-4 mb-6">
+          <>
+            <div className="flex flex-wrap gap-4 mb-6">
 
-            <button
-              onClick={() => navigate("/admin/generate")}
-              className="bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
-            >
-              + Generate QR
-            </button>
+              <button
+                onClick={() => navigate("/admin/generate")}
+                className="bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
+              >
+                + Generate QR
+              </button>
 
-            <button
-              onClick={() => navigate("/admin/qrs")}
-              className="bg-blue-500 px-5 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
-            >
-              View All QR
-            </button>
+              <button
+                onClick={() => navigate("/admin/qrs")}
+                className="bg-blue-500 px-5 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
+              >
+                View All QR
+              </button>
 
-          </div>
+            </div>
+
+            {/* 🔥 BULK DOWNLOAD */}
+            <div className="bg-[#111827] p-6 rounded-xl border border-gray-800">
+
+              <h2 className="text-lg font-semibold mb-4">
+                Download Unassigned QRs (Bulk)
+              </h2>
+
+              <div className="flex flex-wrap gap-4">
+
+                <a
+                  href={`${API_URL}/download-unassigned/3`}
+                  className="bg-green-500 px-4 py-2 rounded text-sm font-semibold hover:scale-105 transition"
+                >
+                  Download 3x3
+                </a>
+
+                <a
+                  href={`${API_URL}/download-unassigned/6`}
+                  className="bg-orange-500 px-4 py-2 rounded text-sm font-semibold hover:scale-105 transition"
+                >
+                  Download 6x6
+                </a>
+
+                <a
+                  href={`${API_URL}/download-unassigned/8`}
+                  className="bg-purple-500 px-4 py-2 rounded text-sm font-semibold hover:scale-105 transition"
+                >
+                  Download 8x8
+                </a>
+
+              </div>
+
+              <p className="text-gray-400 text-xs mt-3">
+                Downloads all unassigned QR codes as a ZIP file for printing/selling
+              </p>
+
+            </div>
+          </>
         )}
 
-        {/* USER SECTION */}
+        {/* ================= USER SECTION ================= */}
         {role !== "admin" && (
           <>
             <h2 className="text-xl font-semibold mb-4">My QR Codes</h2>
@@ -135,7 +177,7 @@ export default function Dashboard() {
                   <Card
                     key={qr._id}
                     id={qr._id}
-                    onDelete={handleDelete} // 🔥 FIX CONNECTED
+                    onDelete={handleDelete}
                   />
                 ))}
               </div>
