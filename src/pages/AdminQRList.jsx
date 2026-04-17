@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 
 export default function AdminQRList() {
-  const [qrs, setQrs] = useState([]);
+  const [activated, setActivated] = useState([]);
+  const [unassigned, setUnassigned] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -36,7 +37,9 @@ export default function AdminQRList() {
         throw new Error(data.error || "Failed to fetch QRs");
       }
 
-      setQrs(data || []);
+      // 🔥 SPLIT LOGIC
+      setActivated(data.filter(q => q.isActivated));
+      setUnassigned(data.filter(q => !q.isActivated));
 
     } catch (err) {
       console.error(err);
@@ -46,15 +49,67 @@ export default function AdminQRList() {
     }
   };
 
-  /* ================= INITIAL + AUTO REFRESH ================= */
+  /* ================= AUTO REFRESH ================= */
   useEffect(() => {
     fetchQrs();
-
-    // 🔥 auto refresh every 5 sec
     const interval = setInterval(fetchQrs, 5000);
-
     return () => clearInterval(interval);
   }, [navigate]);
+
+  /* ================= CARD ================= */
+  const renderCard = (qr) => (
+    <div
+      key={qr._id}
+      className="bg-[#111827] p-5 rounded-xl border border-gray-800 text-center"
+    >
+
+      <img
+        src={`${API_URL}/generate-qr/${qr._id}`}
+        className="mx-auto mb-4 w-32 bg-white p-2 rounded cursor-pointer hover:scale-105 transition"
+        onClick={() =>
+          window.open(`${API_URL}/generate-qr/${qr._id}`, "_blank")
+        }
+      />
+
+      <p className="text-sm font-semibold">
+        {qr.name || "UNASSIGNED"}
+      </p>
+
+      <p className={`text-xs mt-1 font-semibold ${
+        qr.isActivated ? "text-green-400" : "text-red-400"
+      }`}>
+        {qr.isActivated ? "Activated" : "Not Activated"}
+      </p>
+
+      {qr.userEmail && (
+        <p className="text-[10px] text-gray-500 mt-1">
+          {qr.userEmail}
+        </p>
+      )}
+
+      <p className="text-gray-400 text-xs mt-1">
+        Scans: {qr.scans || 0}
+      </p>
+
+      <div className="flex justify-center gap-2 mt-3 text-xs">
+        <a href={`${API_URL}/download-qr/${qr._id}/6`} className="bg-orange-500 px-2 py-1 rounded">6x6</a>
+        <a href={`${API_URL}/download-qr/${qr._id}/8`} className="bg-pink-500 px-2 py-1 rounded">8x8</a>
+        <a href={`${API_URL}/download-qr/${qr._id}/12`} className="bg-purple-500 px-2 py-1 rounded">12x12</a>
+      </div>
+
+      <button
+        onClick={() => navigate(`/profile/${qr._id}`)}
+        className="text-blue-400 text-xs mt-3"
+      >
+        View Profile
+      </button>
+
+      <p className="text-gray-500 text-[10px] mt-2 break-all">
+        {qr._id}
+      </p>
+
+    </div>
+  );
 
   /* ================= LOADING ================= */
   if (loading) {
@@ -68,7 +123,7 @@ export default function AdminQRList() {
   return (
     <div className="min-h-screen bg-[#0B0F19] text-white p-6">
 
-      {/* BACK */}
+      {/* TOP BAR */}
       <div className="flex justify-between items-center mb-6">
         <button
           onClick={() => navigate(-1)}
@@ -77,7 +132,6 @@ export default function AdminQRList() {
           ← Back
         </button>
 
-        {/* 🔥 MANUAL REFRESH */}
         <button
           onClick={fetchQrs}
           className="text-sm bg-gray-700 px-3 py-1 rounded hover:bg-gray-600"
@@ -86,83 +140,31 @@ export default function AdminQRList() {
         </button>
       </div>
 
-      <h1 className="text-2xl font-bold mb-6">
-        All QR Codes
-      </h1>
+      {/* ================= ACTIVATED ================= */}
+      <h2 className="text-2xl font-bold mb-4 text-green-400">
+        Activated QRs
+      </h2>
 
-      {/* EMPTY */}
-      {qrs.length === 0 && (
-        <p className="text-gray-400">No QR codes found</p>
+      {activated.length === 0 ? (
+        <p className="text-gray-400 mb-10">No activated QRs</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
+          {activated.map(renderCard)}
+        </div>
       )}
 
-      {/* GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      {/* ================= UNASSIGNED ================= */}
+      <h2 className="text-2xl font-bold mb-4 text-red-400">
+        Unassigned QRs
+      </h2>
 
-        {qrs.map((qr) => (
-          <div
-            key={qr._id}
-            className="bg-[#111827] p-5 rounded-xl border border-gray-800 text-center"
-          >
-
-            {/* QR IMAGE */}
-            <img
-              src={`${API_URL}/generate-qr/${qr._id}`}
-              className="mx-auto mb-4 w-32 bg-white p-2 rounded cursor-pointer hover:scale-105 transition"
-              onClick={() =>
-                window.open(`${API_URL}/generate-qr/${qr._id}`, "_blank")
-              }
-            />
-
-            {/* NAME */}
-            <p className="text-sm font-semibold">
-              {qr.name || "UNASSIGNED"}
-            </p>
-
-            {/* STATUS */}
-            <p
-              className={`text-xs mt-1 font-semibold ${
-                qr.isActivated ? "text-green-400" : "text-red-400"
-              }`}
-            >
-              {qr.isActivated ? "Activated" : "Not Activated"}
-            </p>
-
-            {/* USER EMAIL */}
-            {qr.userEmail && (
-              <p className="text-[10px] text-gray-500 mt-1">
-                {qr.userEmail}
-              </p>
-            )}
-
-            {/* SCANS */}
-            <p className="text-gray-400 text-xs mt-1">
-              Scans: {qr.scans || 0}
-            </p>
-
-            {/* DOWNLOAD */}
-            <div className="flex justify-center gap-2 mt-3 text-xs">
-              <a href={`${API_URL}/download-qr/${qr._id}/6`} className="bg-orange-500 px-2 py-1 rounded">6x6</a>
-              <a href={`${API_URL}/download-qr/${qr._id}/8`} className="bg-pink-500 px-2 py-1 rounded">8x8</a>
-              <a href={`${API_URL}/download-qr/${qr._id}/12`} className="bg-purple-500 px-2 py-1 rounded">12x12</a>
-            </div>
-
-            {/* VIEW */}
-            <button
-              onClick={() => navigate(`/profile/${qr._id}`)}
-              className="text-blue-400 text-xs mt-3"
-            >
-              View Profile
-            </button>
-
-            {/* ID */}
-            <p className="text-gray-500 text-[10px] mt-2 break-all">
-              {qr._id}
-            </p>
-
-          </div>
-        ))}
-
-      </div>
+      {unassigned.length === 0 ? (
+        <p className="text-gray-400">No unassigned QRs</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {unassigned.map(renderCard)}
+        </div>
+      )}
 
     </div>
   );
