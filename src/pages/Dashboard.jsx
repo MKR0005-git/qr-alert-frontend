@@ -3,37 +3,54 @@ import Card from "../components/Card";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { API_URL } from "../config";
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [qrs, setQrs] = useState([]);
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const role = localStorage.getItem("role");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+        if (!token) {
+          navigate("/login");
+          return;
+        }
 
-    if (role === "admin") {
-      fetch("${API_URL}/admin-analytics", {
-        headers: { Authorization: token },
-      })
-        .then(res => res.json())
-        .then(setStats)
-        .finally(() => setLoading(false));
+        // 🔥 FIXED: correct API + Bearer token
+        const res = await fetch(`${API_URL}/my-qrs`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to fetch");
+        }
+
+        setQrs(data);
+
+      } catch (err) {
+        console.error(err);
+        alert(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // 🔥 Only user dashboard uses this
+    if (role !== "admin") {
+      fetchData();
     } else {
-      fetch("${API_URL}/my-qrs", {
-        headers: { Authorization: token },
-      })
-        .then(res => res.json())
-        .then(setQrs)
-        .finally(() => setLoading(false));
+      setLoading(false);
     }
+
   }, [navigate, role]);
 
   if (loading) {
@@ -58,7 +75,7 @@ export default function Dashboard() {
             </h1>
             <p className="text-gray-400 text-sm mt-1">
               {role === "admin"
-                ? "System analytics overview"
+                ? "Manage system QR codes"
                 : "Manage your QR profiles"}
             </p>
           </div>
@@ -76,79 +93,22 @@ export default function Dashboard() {
 
         {/* 🔥 ADMIN ACTIONS */}
         {role === "admin" && (
-          <>
-            <div className="flex flex-wrap gap-4 mb-6">
+          <div className="flex flex-wrap gap-4 mb-6">
 
-              {/* GENERATE */}
-              <button
-                onClick={() => navigate("/admin/generate")}
-                className="bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
-              >
-                + Generate QR
-              </button>
+            <button
+              onClick={() => navigate("/admin/generate")}
+              className="bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
+            >
+              + Generate QR
+            </button>
 
-              {/* VIEW */}
-              <button
-                onClick={() => navigate("/admin/qrs")}
-                className="bg-blue-500 px-5 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
-              >
-                View All QR
-              </button>
+            <button
+              onClick={() => navigate("/admin/qrs")}
+              className="bg-blue-500 px-5 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
+            >
+              View All QR
+            </button>
 
-            </div>
-
-            {/* 🔥 PDF DOWNLOAD SECTION */}
-            <div className="flex flex-wrap gap-4 mb-8">
-
-              <button
-                onClick={() =>
-                  window.open("${API_URL}/download-all-qrs/6")
-                }
-                className="bg-green-500 px-4 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
-              >
-                📄 PDF 6x6
-              </button>
-
-              <button
-                onClick={() =>
-                  window.open("${API_URL}/download-all-qrs/8")
-                }
-                className="bg-blue-500 px-4 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
-              >
-                📄 PDF 8x8
-              </button>
-
-              <button
-                onClick={() =>
-                  window.open("${API_URL}/download-all-qrs/12")
-                }
-                className="bg-purple-500 px-4 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition"
-              >
-                📄 PDF 12x12
-              </button>
-
-            </div>
-          </>
-        )}
-
-        {/* ADMIN STATS */}
-        {role === "admin" && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {[
-              { label: "Total QR Codes", value: stats?.totalQR },
-              { label: "Total Scans", value: stats?.totalScans },
-              { label: "Active QR", value: stats?.activeQR },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="bg-[#111827] p-6 rounded-xl border border-gray-800 shadow"
-              >
-                <p className="text-gray-400 text-sm mb-2">{item.label}</p>
-                <h2 className="text-3xl font-bold text-orange-400">
-                  {item.value}
-                </h2>
-              </div>
-            ))}
           </div>
         )}
 
@@ -169,7 +129,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {qrs.map(qr => (
+                {qrs.map((qr) => (
                   <Card key={qr._id} id={qr._id} />
                 ))}
               </div>

@@ -12,10 +12,16 @@ export default function Login() {
     try {
       setLoading(true);
 
-      // 🔥 FIX: use popup instead of redirect
+      // 🔥 GOOGLE LOGIN
       const result = await signInWithPopup(auth, provider);
+
+      if (!result || !result.user) {
+        throw new Error("Google login failed");
+      }
+
       const user = result.user;
 
+      // 🔥 BACKEND LOGIN
       const res = await fetch(`${API_URL}/google-login`, {
         method: "POST",
         headers: {
@@ -27,37 +33,35 @@ export default function Login() {
         }),
       });
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        throw new Error("Invalid server response");
-      }
+      const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error || "Login failed");
       }
 
-      // ❗ IMPORTANT: don’t clear everything blindly
+      // 🔥 SAVE REDIRECT BEFORE CLEAR
       const redirect = localStorage.getItem("redirectAfterLogin");
 
-      localStorage.clear();
+      // 🔥 CLEAR ONLY REQUIRED KEYS (NOT FULL CLEAR)
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
 
-      // 🔥 FIX: restore redirect AFTER clearing
+      // 🔥 RESTORE REDIRECT
       if (redirect) {
         localStorage.setItem("redirectAfterLogin", redirect);
       }
 
-      // 🔥 REDIRECT FLOW
+      // 🔥 FINAL REDIRECT
       const finalRedirect = localStorage.getItem("redirectAfterLogin");
 
       if (finalRedirect) {
         localStorage.removeItem("redirectAfterLogin");
-        navigate(finalRedirect);
+        navigate(finalRedirect, { replace: true });
       } else {
-        navigate("/");
+        navigate("/", { replace: true });
       }
 
     } catch (err) {

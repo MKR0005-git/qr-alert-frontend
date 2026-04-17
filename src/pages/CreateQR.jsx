@@ -27,17 +27,17 @@ export default function CreateQR() {
 
       // ✅ VALIDATION
       if (
-        !form.name ||
+        !form.name.trim() ||
         !form.phone ||
-        !form.bloodGroup ||
+        !form.bloodGroup.trim() ||
         !form.emergencyContact
       ) {
-        alert("Please fill required fields");
+        alert("Please fill all required fields");
         return;
       }
 
-      if (form.phone.length < 10 || form.emergencyContact.length < 10) {
-        alert("Enter valid phone numbers");
+      if (form.phone.length !== 10 || form.emergencyContact.length !== 10) {
+        alert("Phone numbers must be 10 digits");
         return;
       }
 
@@ -47,28 +47,31 @@ export default function CreateQR() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 🔥 FIXED
+          Authorization: `Bearer ${token}`, // ✅ CORRECT
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone,
+          bloodGroup: form.bloodGroup.trim(),
+          emergencyContact: form.emergencyContact,
+          emergencyEmail: form.emergencyEmail.trim(),
+        }),
       });
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        throw new Error("Invalid server response");
-      }
+      const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error || "Failed to create QR");
       }
 
+      // ✅ SUCCESS
       alert("QR Created Successfully ✅");
 
-      navigate("/");
+      // 🔥 IMPORTANT: force refresh flow
+      navigate("/", { replace: true });
 
     } catch (err) {
-      console.log(err);
+      console.error(err);
       alert(err.message || "Something went wrong");
     } finally {
       setLoading(false);

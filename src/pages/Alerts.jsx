@@ -8,6 +8,7 @@ export default function Alerts() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  /* ================= FETCH ================= */
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -18,28 +19,23 @@ export default function Alerts() {
           return;
         }
 
-        const res = await fetch(`${API_URL}/my-qrs`, { // 🔥 FIXED
+        const res = await fetch(`${API_URL}/my-qrs`, {
           headers: {
-            Authorization: `Bearer ${token}`, // 🔥 FIXED
+            Authorization: `Bearer ${token}`, // ✅ CORRECT
           },
         });
 
-        let result;
-        try {
-          result = await res.json();
-        } catch {
-          throw new Error("Invalid server response");
-        }
+        const result = await res.json();
 
         if (!res.ok) {
           throw new Error(result.error || "Failed to fetch alerts");
         }
 
-        setData(result);
+        setData(result || []);
 
       } catch (err) {
         console.error(err);
-        alert(err.message);
+        alert(err.message || "Something went wrong");
       } finally {
         setLoading(false);
       }
@@ -72,10 +68,9 @@ export default function Alerts() {
             <p className="text-gray-400">No alerts yet</p>
           </div>
         ) : (
-
           <div className="space-y-6">
 
-            {data.map(qr => (
+            {data.map((qr) => (
               <div
                 key={qr._id}
                 className="bg-[#111827] border border-gray-800 p-5 rounded-xl shadow hover:shadow-lg transition"
@@ -83,11 +78,11 @@ export default function Alerts() {
 
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-semibold">
-                    {qr.name}
+                    {qr.name || "Unnamed"}
                   </h2>
 
                   <span className="text-sm text-orange-400 font-bold">
-                    {qr.scans} scans
+                    {qr.scans || 0} scans
                   </span>
                 </div>
 
@@ -107,7 +102,9 @@ export default function Alerts() {
                           </span>
 
                           <span className="text-gray-500">
-                            {new Date(scan.time).toLocaleString()}
+                            {scan.time
+                              ? new Date(scan.time).toLocaleString()
+                              : "Unknown time"}
                           </span>
                         </div>
                       ))

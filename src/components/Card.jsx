@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
+
 export default function Card({ id }) {
   const [data, setData] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -10,38 +11,65 @@ export default function Card({ id }) {
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    fetch(`${API_URL}/qr-data/${id}`)
-      .then(res => res.json())
-      .then(res => {
-        setData(res);
-        setForm(res);
-      });
-  }, [id]);
-
-  const handleDelete = async () => {
-    if (!confirm("Delete this QR?")) return;
-
-    await fetch(`${API_URL}/delete-qr/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: token },
-    });
-
-    window.location.reload();
+  /* ================= FETCH ================= */
+  const fetchData = async () => {
+    try {
+      const res = await fetch(`${API_URL}/qr-data/${id}`);
+      const result = await res.json();
+      setData(result);
+      setForm(result);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleUpdate = async () => {
-    await fetch(`${API_URL}/update-qr/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token,
-      },
-      body: JSON.stringify(form),
-    });
+  useEffect(() => {
+    fetchData();
+  }, [id]);
 
-    setEditOpen(false);
-    window.location.reload();
+  /* ================= DELETE ================= */
+  const handleDelete = async () => {
+    if (!window.confirm("Delete this QR?")) return;
+
+    try {
+      const res = await fetch(`${API_URL}/delete-qr/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ FIXED
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Delete failed");
+      }
+
+      window.location.reload();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  /* ================= UPDATE ================= */
+  const handleUpdate = async () => {
+    try {
+      const res = await fetch(`${API_URL}/update-qr/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ FIXED
+        },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) {
+        throw new Error("Update failed");
+      }
+
+      setEditOpen(false);
+      fetchData(); // 🔥 no reload needed
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   if (!data) return null;
@@ -68,33 +96,14 @@ export default function Card({ id }) {
           Scans: <span className="text-orange-400">{data.scans}</span>
         </p>
 
-        {/* 🔥 DOWNLOAD SIZES */}
+        {/* DOWNLOAD */}
         <div className="mb-3">
           <p className="text-xs text-gray-400 mb-2">Download Size</p>
 
           <div className="flex justify-center gap-2 text-xs">
-
-            <a
-              href={`${API_URL}/download-qr/${id}/6`}
-              className="bg-orange-500 px-2 py-1 rounded hover:scale-105 transition"
-            >
-              6x6
-            </a>
-
-            <a
-              href={`${API_URL}/download-qr/${id}/8`}
-              className="bg-pink-500 px-2 py-1 rounded hover:scale-105 transition"
-            >
-              8x8
-            </a>
-
-            <a
-              href={`${API_URL}/download-qr/${id}/12`}
-              className="bg-purple-500 px-2 py-1 rounded hover:scale-105 transition"
-            >
-              12x12
-            </a>
-
+            <a href={`${API_URL}/download-qr/${id}/6`} className="bg-orange-500 px-2 py-1 rounded">6x6</a>
+            <a href={`${API_URL}/download-qr/${id}/8`} className="bg-pink-500 px-2 py-1 rounded">8x8</a>
+            <a href={`${API_URL}/download-qr/${id}/12`} className="bg-purple-500 px-2 py-1 rounded">12x12</a>
           </div>
         </div>
 
@@ -127,7 +136,7 @@ export default function Card({ id }) {
         </div>
       </div>
 
-      {/* 🔍 ZOOM */}
+      {/* ZOOM */}
       {zoomOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
@@ -140,7 +149,7 @@ export default function Card({ id }) {
         </div>
       )}
 
-      {/* ✏️ EDIT MODAL */}
+      {/* EDIT MODAL */}
       {editOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
 
@@ -177,7 +186,7 @@ export default function Card({ id }) {
 
               <button
                 onClick={handleUpdate}
-                className="bg-orange-500 px-4 py-1 rounded hover:scale-105 transition"
+                className="bg-orange-500 px-4 py-1 rounded"
               >
                 Save
               </button>

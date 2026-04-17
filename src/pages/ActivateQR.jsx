@@ -31,47 +31,48 @@ export default function ActivateQR() {
 
   /* ================= SUBMIT ================= */
   const handleSubmit = async () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      alert("Please login first");
-      navigate("/login");
-      return;
-    }
-
-    if (
-      !form.name ||
-      !form.phone ||
-      !form.bloodGroup ||
-      !form.emergencyContact
-    ) {
-      alert("Please fill all required fields");
-      return;
-    }
-
-    if (form.phone.length < 10 || form.emergencyContact.length < 10) {
-      alert("Enter valid phone numbers");
-      return;
-    }
-
     try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      // ✅ VALIDATION
+      if (
+        !form.name.trim() ||
+        !form.phone ||
+        !form.bloodGroup.trim() ||
+        !form.emergencyContact
+      ) {
+        alert("Please fill all required fields");
+        return;
+      }
+
+      if (form.phone.length !== 10 || form.emergencyContact.length !== 10) {
+        alert("Phone numbers must be 10 digits");
+        return;
+      }
+
       setLoading(true);
 
       const res = await fetch(`${API_URL}/activate-qr/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 🔥 FIXED HERE
+          Authorization: `Bearer ${token}`, // ✅ CORRECT
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone,
+          bloodGroup: form.bloodGroup.trim(),
+          emergencyContact: form.emergencyContact,
+          emergencyEmail: form.emergencyEmail.trim(),
+        }),
       });
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        throw new Error("Invalid server response");
-      }
+      const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error || "Activation failed");
@@ -81,7 +82,8 @@ export default function ActivateQR() {
 
       localStorage.removeItem("redirectAfterLogin");
 
-      navigate(`/profile/${id}`);
+      // 🔥 IMPORTANT: go to dashboard (so it appears in My QRs)
+      navigate("/", { replace: true });
 
     } catch (err) {
       console.error(err);

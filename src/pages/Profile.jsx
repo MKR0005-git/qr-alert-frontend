@@ -21,8 +21,9 @@ export default function Profile() {
         const json = await res.json();
         setData(json);
 
-        if (json.isActivated) {
-          setTimeout(() => setShowPopup(true), 2000);
+        // 🔥 show popup only if activated
+        if (json?.isActivated) {
+          setTimeout(() => setShowPopup(true), 1500);
         }
 
       } catch (err) {
@@ -54,31 +55,33 @@ export default function Profile() {
       const { latitude, longitude } = position.coords;
       locationText = `https://maps.google.com/?q=${latitude},${longitude}`;
 
-    } catch (err) {
+    } catch {
       console.log("Location denied or failed");
     }
 
-    const phone = (data.emergencyContact || "").replace(/\D/g, "");
+    const phone = (data?.emergencyContact || "").replace(/\D/g, "");
 
     const message = `🚨 EMERGENCY ALERT 🚨
-Person: ${data.name}
-Blood Group: ${data.bloodGroup}
+Person: ${data?.name}
+Blood Group: ${data?.bloodGroup}
 
 📍 Location:
 ${locationText}
 
 Please help immediately!`;
 
-    /* 🔥 WHATSAPP */
-    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(waUrl, "_blank");
+    // 🔥 WhatsApp
+    if (phone) {
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, "_blank");
+    }
 
-    /* 🔥 EMAIL BACKUP */
-    if (data.emergencyEmail) {
+    // 🔥 Email backup
+    if (data?.emergencyEmail) {
       setTimeout(() => {
         window.location.href =
           `mailto:${data.emergencyEmail}?subject=🚨 Emergency Alert&body=${encodeURIComponent(message)}`;
-      }, 1500);
+      }, 1200);
     }
   };
 
@@ -156,8 +159,8 @@ Please help immediately!`;
         </div>
 
         <div className="bg-[#0B0F19] p-4 rounded-xl text-center mb-5">
-          <h2 className="text-xl font-bold">{data.name}</h2>
-          <p className="text-red-400 mt-1">🩸 {data.bloodGroup}</p>
+          <h2 className="text-xl font-bold">{data.name || "Unknown"}</h2>
+          <p className="text-red-400 mt-1">🩸 {data.bloodGroup || "NA"}</p>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -169,12 +172,14 @@ Please help immediately!`;
             🚨 SEND EMERGENCY ALERT
           </button>
 
-          <a
-            href={`tel:${data.emergencyContact}`}
-            className="bg-orange-500 py-3 rounded-xl text-center font-semibold"
-          >
-            📞 Call Emergency
-          </a>
+          {data.emergencyContact && (
+            <a
+              href={`tel:${data.emergencyContact}`}
+              className="bg-orange-500 py-3 rounded-xl text-center font-semibold"
+            >
+              📞 Call Emergency
+            </a>
+          )}
 
           {data.emergencyEmail && (
             <a
