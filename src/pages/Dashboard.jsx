@@ -7,7 +7,7 @@ import { API_URL } from "../config";
 export default function Dashboard() {
   const navigate = useNavigate();
   const [qrs, setQrs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const role = localStorage.getItem("role");
 
@@ -39,32 +39,51 @@ export default function Dashboard() {
       } catch (err) {
         console.error(err);
         alert(err.message);
-      } finally {
-        setLoading(false);
       }
     };
 
     if (role !== "admin") {
       fetchData();
-    } else {
-      setLoading(false);
     }
 
   }, [navigate, role]);
 
-  /* ================= DELETE FIX ================= */
+  /* ================= DELETE ================= */
   const handleDelete = (id) => {
     setQrs(prev => prev.filter(q => q._id !== id));
   };
 
-  /* ================= LOADING ================= */
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0B0F19] text-white">
-        Loading...
-      </div>
-    );
-  }
+  /* ================= DOWNLOAD FIX ================= */
+  const handleDownload = async (size) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_URL}/download-unassigned/${size}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Download failed");
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `unassigned-qrs-${size}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0B0F19] to-[#111827] text-white">
@@ -95,7 +114,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* ================= ADMIN SECTION ================= */}
+        {/* ================= ADMIN ================= */}
         {role === "admin" && (
           <>
             <div className="flex flex-wrap gap-4 mb-6">
@@ -116,7 +135,7 @@ export default function Dashboard() {
 
             </div>
 
-            {/* 🔥 BULK DOWNLOAD */}
+            {/* 🔥 FIXED DOWNLOAD */}
             <div className="bg-[#111827] p-6 rounded-xl border border-gray-800">
 
               <h2 className="text-lg font-semibold mb-4">
@@ -125,26 +144,26 @@ export default function Dashboard() {
 
               <div className="flex flex-wrap gap-4">
 
-                <a
-                  href={`${API_URL}/download-unassigned/3`}
+                <button
+                  onClick={() => handleDownload(3)}
                   className="bg-green-500 px-4 py-2 rounded text-sm font-semibold hover:scale-105 transition"
                 >
                   Download 3x3
-                </a>
+                </button>
 
-                <a
-                  href={`${API_URL}/download-unassigned/6`}
+                <button
+                  onClick={() => handleDownload(6)}
                   className="bg-orange-500 px-4 py-2 rounded text-sm font-semibold hover:scale-105 transition"
                 >
                   Download 6x6
-                </a>
+                </button>
 
-                <a
-                  href={`${API_URL}/download-unassigned/8`}
+                <button
+                  onClick={() => handleDownload(8)}
                   className="bg-purple-500 px-4 py-2 rounded text-sm font-semibold hover:scale-105 transition"
                 >
                   Download 8x8
-                </a>
+                </button>
 
               </div>
 
@@ -156,7 +175,7 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* ================= USER SECTION ================= */}
+        {/* ================= USER ================= */}
         {role !== "admin" && (
           <>
             <h2 className="text-xl font-semibold mb-4">My QR Codes</h2>
