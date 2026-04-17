@@ -27,7 +27,7 @@ export default function Card({ id, onDelete }) {
     fetchData();
   }, [id]);
 
-  /* ================= DOWNLOAD FIX ================= */
+  /* ================= DOWNLOAD ================= */
   const handleDownload = async (size) => {
     try {
       const res = await fetch(`${API_URL}/download-qr/${id}/${size}`, {
@@ -65,13 +65,9 @@ export default function Card({ id, onDelete }) {
         },
       });
 
-      if (!res.ok) {
-        throw new Error("Delete failed");
-      }
+      if (!res.ok) throw new Error("Delete failed");
 
-      if (onDelete) {
-        onDelete(id);
-      }
+      if (onDelete) onDelete(id);
 
     } catch (err) {
       alert(err.message);
@@ -90,9 +86,7 @@ export default function Card({ id, onDelete }) {
         body: JSON.stringify(form),
       });
 
-      if (!res.ok) {
-        throw new Error("Update failed");
-      }
+      if (!res.ok) throw new Error("Update failed");
 
       setEditOpen(false);
       fetchData();
@@ -106,16 +100,18 @@ export default function Card({ id, onDelete }) {
 
   return (
     <>
-      <div className="bg-[#111827] border border-gray-800 p-5 rounded-xl shadow hover:scale-105 transition text-center">
+      <div className="bg-[#111827] border border-gray-800 p-5 rounded-xl shadow-lg hover:shadow-2xl transition text-center">
 
-        {/* QR IMAGE */}
-        <img
-          src={`${API_URL}/generate-qr/${id}`}
-          className="mx-auto mb-4 w-40 cursor-pointer hover:scale-105 transition"
-          onClick={() => setZoomOpen(true)}
-        />
+        {/* 🔥 PREMIUM QR BOX */}
+        <div className="bg-white p-3 rounded-xl inline-block shadow-md hover:scale-105 transition">
+          <img
+            src={`${API_URL}/generate-qr/${id}`}
+            className="w-40 cursor-pointer"
+            onClick={() => setZoomOpen(true)}
+          />
+        </div>
 
-        <h3 className="text-lg font-semibold">{data.name}</h3>
+        <h3 className="text-lg font-semibold mt-4">{data.name}</h3>
 
         <p className={`text-sm ${data.isActivated ? "text-green-400" : "text-red-400"}`}>
           {data.isActivated ? "Active" : "Inactive"}
@@ -165,20 +161,22 @@ export default function Card({ id, onDelete }) {
         </div>
       </div>
 
-      {/* ================= ZOOM ================= */}
+      {/* 🔍 ZOOM VIEW */}
       {zoomOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
           onClick={() => setZoomOpen(false)}
         >
-          <img
-            src={`${API_URL}/generate-qr/${id}`}
-            className="w-80 md:w-[400px] bg-white p-4 rounded-xl"
-          />
+          <div className="bg-white p-6 rounded-xl">
+            <img
+              src={`${API_URL}/generate-qr/${id}`}
+              className="w-80 md:w-[420px]"
+            />
+          </div>
         </div>
       )}
 
-      {/* ================= EDIT ================= */}
+      {/* ✏️ EDIT MODAL */}
       {editOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
 
@@ -186,7 +184,6 @@ export default function Card({ id, onDelete }) {
 
             <h2 className="text-lg font-bold mb-4">Edit QR</h2>
 
-            {/* NAME */}
             <input
               value={form.name || ""}
               placeholder="Name"
@@ -194,7 +191,6 @@ export default function Card({ id, onDelete }) {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
 
-            {/* PHONE */}
             <input
               value={form.phone || ""}
               placeholder="Phone"
@@ -207,7 +203,6 @@ export default function Card({ id, onDelete }) {
               }
             />
 
-            {/* BLOOD */}
             <input
               value={form.bloodGroup || ""}
               placeholder="Blood Group"
@@ -215,7 +210,6 @@ export default function Card({ id, onDelete }) {
               onChange={(e) => setForm({ ...form, bloodGroup: e.target.value })}
             />
 
-            {/* EMERGENCY CONTACT */}
             <input
               value={form.emergencyContact || ""}
               placeholder="Emergency Contact"
@@ -228,7 +222,6 @@ export default function Card({ id, onDelete }) {
               }
             />
 
-            {/* EMAIL */}
             <input
               value={form.emergencyEmail || ""}
               placeholder="Emergency Email"

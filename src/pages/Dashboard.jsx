@@ -123,38 +123,40 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto px-6 py-8">
 
         {/* HEADER */}
-        <h1 className="text-3xl font-bold mb-2">
-          {role === "admin" ? "Admin Dashboard" : "My Dashboard"}
-        </h1>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">
+            {role === "admin" ? "Admin Dashboard" : "My Dashboard"}
+          </h1>
 
-        <p className="text-gray-400 mb-6">
-          {role === "admin"
-            ? "Manage system QR codes"
-            : "Manage your QR profiles"}
-        </p>
+          <p className="text-gray-400 mt-1">
+            {role === "admin"
+              ? "Manage system QR codes"
+              : "Manage your QR profiles"}
+          </p>
+        </div>
 
         {/* ================= ADMIN ANALYTICS ================= */}
         {role === "admin" && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
 
-            <div className="bg-[#111827] p-4 rounded-xl text-center">
-              <p className="text-gray-400 text-sm">Total QRs</p>
-              <h2 className="text-xl font-bold">{stats.total}</h2>
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 rounded-xl text-center shadow">
+              <p className="text-sm opacity-80">Total QRs</p>
+              <h2 className="text-2xl font-bold">{stats.total}</h2>
             </div>
 
-            <div className="bg-[#111827] p-4 rounded-xl text-center">
-              <p className="text-green-400 text-sm">Activated</p>
-              <h2 className="text-xl font-bold">{stats.activated}</h2>
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-5 rounded-xl text-center shadow">
+              <p className="text-sm opacity-80">Activated</p>
+              <h2 className="text-2xl font-bold">{stats.activated}</h2>
             </div>
 
-            <div className="bg-[#111827] p-4 rounded-xl text-center">
-              <p className="text-red-400 text-sm">Unassigned</p>
-              <h2 className="text-xl font-bold">{stats.unassigned}</h2>
+            <div className="bg-gradient-to-r from-red-500 to-pink-600 p-5 rounded-xl text-center shadow">
+              <p className="text-sm opacity-80">Unassigned</p>
+              <h2 className="text-2xl font-bold">{stats.unassigned}</h2>
             </div>
 
-            <div className="bg-[#111827] p-4 rounded-xl text-center">
-              <p className="text-orange-400 text-sm">Total Scans</p>
-              <h2 className="text-xl font-bold">{stats.scans}</h2>
+            <div className="bg-gradient-to-r from-orange-500 to-yellow-500 p-5 rounded-xl text-center shadow">
+              <p className="text-sm opacity-80">Total Scans</p>
+              <h2 className="text-2xl font-bold">{stats.scans}</h2>
             </div>
 
           </div>
@@ -164,31 +166,39 @@ export default function Dashboard() {
         {role === "admin" && (
           <>
             <div className="flex gap-4 mb-6">
+
               <button
                 onClick={() => navigate("/admin/generate")}
-                className="bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-2 rounded"
+                className="bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-2 rounded-lg hover:scale-105 transition"
               >
                 + Generate QR
               </button>
 
               <button
                 onClick={() => navigate("/admin/qrs")}
-                className="bg-blue-500 px-5 py-2 rounded"
+                className="bg-blue-500 px-5 py-2 rounded-lg hover:scale-105 transition"
               >
                 View All QR
               </button>
+
             </div>
 
             {/* DOWNLOAD */}
-            <div className="bg-[#111827] p-6 rounded-xl mb-8">
+            <div className="bg-[#111827] p-6 rounded-xl mb-10 border border-gray-800">
 
-              <h2 className="mb-4">Download Unassigned QRs</h2>
+              <h2 className="mb-4 font-semibold">
+                Download Unassigned QRs (Bulk)
+              </h2>
 
               <div className="flex gap-3">
                 <button onClick={() => handleDownload(3)} className="bg-green-500 px-4 py-2 rounded">3x3</button>
                 <button onClick={() => handleDownload(6)} className="bg-orange-500 px-4 py-2 rounded">6x6</button>
                 <button onClick={() => handleDownload(8)} className="bg-purple-500 px-4 py-2 rounded">8x8</button>
               </div>
+
+              <p className="text-xs text-gray-400 mt-2">
+                Download all unassigned QR codes as ZIP for selling/printing
+              </p>
 
             </div>
           </>
@@ -200,9 +210,17 @@ export default function Dashboard() {
             <h2 className="text-xl mb-4">My QR Codes</h2>
 
             {qrs.length === 0 ? (
-              <p>No QR codes</p>
+              <div className="bg-[#111827] p-8 rounded-xl text-center border border-gray-800">
+                <p className="text-gray-400 mb-3">No QR codes yet</p>
+                <button
+                  onClick={() => navigate("/create")}
+                  className="bg-orange-500 px-5 py-2 rounded"
+                >
+                  Create QR
+                </button>
+              </div>
             ) : (
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {qrs.map(qr => (
                   <Card key={qr._id} id={qr._id} onDelete={handleDelete} />
                 ))}

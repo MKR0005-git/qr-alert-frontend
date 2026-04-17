@@ -48,14 +48,13 @@ export default function AdminQRList() {
     }
   };
 
-  /* ================= AUTO REFRESH ================= */
   useEffect(() => {
     fetchQrs();
     const interval = setInterval(fetchQrs, 5000);
     return () => clearInterval(interval);
   }, [navigate]);
 
-  /* ================= DOWNLOAD FIX ================= */
+  /* ================= DOWNLOAD ================= */
   const handleDownload = async (id, size) => {
     try {
       const token = localStorage.getItem("token");
@@ -101,7 +100,6 @@ export default function AdminQRList() {
 
       if (!res.ok) throw new Error(data.error);
 
-      // 🔥 instant UI update
       setActivated(prev => prev.filter(q => q._id !== id));
       setUnassigned(prev => prev.filter(q => q._id !== id));
 
@@ -114,33 +112,40 @@ export default function AdminQRList() {
   const renderCard = (qr) => (
     <div
       key={qr._id}
-      className="bg-[#111827] p-5 rounded-xl border border-gray-800 text-center"
+      className="bg-[#111827] p-5 rounded-xl border border-gray-800 text-center shadow-lg hover:shadow-2xl transition"
     >
 
-      <img
-        src={`${API_URL}/generate-qr/${qr._id}`}
-        className="mx-auto mb-4 w-32 bg-white p-2 rounded cursor-pointer hover:scale-105 transition"
-        onClick={() =>
-          window.open(`${API_URL}/generate-qr/${qr._id}`, "_blank")
-        }
-      />
+      {/* 🔥 PREMIUM QR BOX */}
+      <div className="bg-white p-3 rounded-xl inline-block shadow-md hover:scale-105 transition">
+        <img
+          src={`${API_URL}/generate-qr/${qr._id}`}
+          className="w-32 cursor-pointer"
+          onClick={() =>
+            window.open(`${API_URL}/generate-qr/${qr._id}`, "_blank")
+          }
+        />
+      </div>
 
-      <p className="text-sm font-semibold">
+      {/* NAME */}
+      <p className="text-sm font-semibold mt-4">
         {qr.name || "UNASSIGNED"}
       </p>
 
+      {/* STATUS */}
       <p className={`text-xs mt-1 font-semibold ${
         qr.isActivated ? "text-green-400" : "text-red-400"
       }`}>
         {qr.isActivated ? "Activated" : "Not Activated"}
       </p>
 
+      {/* EMAIL */}
       {qr.userEmail && (
         <p className="text-[10px] text-gray-500 mt-1">
           {qr.userEmail}
         </p>
       )}
 
+      {/* SCANS */}
       <p className="text-gray-400 text-xs mt-1">
         Scans: {qr.scans || 0}
       </p>
@@ -167,6 +172,7 @@ export default function AdminQRList() {
         Delete
       </button>
 
+      {/* ID */}
       <p className="text-gray-500 text-[10px] mt-2 break-all">
         {qr._id}
       </p>
