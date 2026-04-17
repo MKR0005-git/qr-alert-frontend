@@ -8,47 +8,52 @@ export default function AdminQRList() {
   const navigate = useNavigate();
 
   /* ================= FETCH ================= */
-  useEffect(() => {
-    const fetchQrs = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const role = localStorage.getItem("role");
+  const fetchQrs = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
 
-        if (!token) {
-          navigate("/login");
-          return;
-        }
-
-        // 🔥 extra safety: only admin allowed
-        if (role !== "admin") {
-          alert("Access denied");
-          navigate("/");
-          return;
-        }
-
-        const res = await fetch(`${API_URL}/all-qrs`, {
-          headers: {
-            Authorization: `Bearer ${token}`, // ✅ CORRECT
-          },
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to fetch QRs");
-        }
-
-        setQrs(data || []);
-
-      } catch (err) {
-        console.error(err);
-        alert(err.message || "Something went wrong");
-      } finally {
-        setLoading(false);
+      if (!token) {
+        navigate("/login");
+        return;
       }
-    };
 
+      if (role !== "admin") {
+        alert("Access denied");
+        navigate("/");
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/all-qrs`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to fetch QRs");
+      }
+
+      setQrs(data || []);
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= INITIAL + AUTO REFRESH ================= */
+  useEffect(() => {
     fetchQrs();
+
+    // 🔥 auto refresh every 5 sec
+    const interval = setInterval(fetchQrs, 5000);
+
+    return () => clearInterval(interval);
   }, [navigate]);
 
   /* ================= LOADING ================= */
@@ -64,12 +69,22 @@ export default function AdminQRList() {
     <div className="min-h-screen bg-[#0B0F19] text-white p-6">
 
       {/* BACK */}
-      <button
-        onClick={() => navigate(-1)}
-        className="mb-6 text-gray-400 hover:text-white"
-      >
-        ← Back
-      </button>
+      <div className="flex justify-between items-center mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-gray-400 hover:text-white"
+        >
+          ← Back
+        </button>
+
+        {/* 🔥 MANUAL REFRESH */}
+        <button
+          onClick={fetchQrs}
+          className="text-sm bg-gray-700 px-3 py-1 rounded hover:bg-gray-600"
+        >
+          Refresh
+        </button>
+      </div>
 
       <h1 className="text-2xl font-bold mb-6">
         All QR Codes
@@ -93,7 +108,9 @@ export default function AdminQRList() {
             <img
               src={`${API_URL}/generate-qr/${qr._id}`}
               className="mx-auto mb-4 w-32 bg-white p-2 rounded cursor-pointer hover:scale-105 transition"
-              onClick={() => window.open(`${API_URL}/generate-qr/${qr._id}`, "_blank")}
+              onClick={() =>
+                window.open(`${API_URL}/generate-qr/${qr._id}`, "_blank")
+              }
             />
 
             {/* NAME */}
@@ -110,7 +127,7 @@ export default function AdminQRList() {
               {qr.isActivated ? "Activated" : "Not Activated"}
             </p>
 
-            {/* USER EMAIL (DEBUG / ADMIN VIEW) */}
+            {/* USER EMAIL */}
             {qr.userEmail && (
               <p className="text-[10px] text-gray-500 mt-1">
                 {qr.userEmail}
@@ -129,7 +146,7 @@ export default function AdminQRList() {
               <a href={`${API_URL}/download-qr/${qr._id}/12`} className="bg-purple-500 px-2 py-1 rounded">12x12</a>
             </div>
 
-            {/* ACTION */}
+            {/* VIEW */}
             <button
               onClick={() => navigate(`/profile/${qr._id}`)}
               className="text-blue-400 text-xs mt-3"

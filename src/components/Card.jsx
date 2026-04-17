@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 
-export default function Card({ id }) {
+export default function Card({ id, onDelete }) {
   const [data, setData] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
@@ -35,7 +35,7 @@ export default function Card({ id }) {
       const res = await fetch(`${API_URL}/delete-qr/${id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`, // ✅ FIXED
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -43,7 +43,11 @@ export default function Card({ id }) {
         throw new Error("Delete failed");
       }
 
-      window.location.reload();
+      // 🔥 IMPORTANT FIX: remove locally instead of reload
+      if (onDelete) {
+        onDelete(id);
+      }
+
     } catch (err) {
       alert(err.message);
     }
@@ -56,7 +60,7 @@ export default function Card({ id }) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ FIXED
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(form),
       });
@@ -66,7 +70,8 @@ export default function Card({ id }) {
       }
 
       setEditOpen(false);
-      fetchData(); // 🔥 no reload needed
+      fetchData();
+
     } catch (err) {
       alert(err.message);
     }
@@ -76,10 +81,8 @@ export default function Card({ id }) {
 
   return (
     <>
-      {/* CARD */}
       <div className="bg-[#111827] border border-gray-800 p-5 rounded-xl shadow hover:scale-105 transition text-center">
 
-        {/* QR */}
         <img
           src={`${API_URL}/generate-qr/${id}`}
           className="mx-auto mb-4 w-40 cursor-pointer hover:scale-105 transition"
@@ -96,7 +99,6 @@ export default function Card({ id }) {
           Scans: <span className="text-orange-400">{data.scans}</span>
         </p>
 
-        {/* DOWNLOAD */}
         <div className="mb-3">
           <p className="text-xs text-gray-400 mb-2">Download Size</p>
 
@@ -107,7 +109,6 @@ export default function Card({ id }) {
           </div>
         </div>
 
-        {/* ACTIONS */}
         <div className="flex flex-col gap-2">
 
           <button
@@ -149,7 +150,7 @@ export default function Card({ id }) {
         </div>
       )}
 
-      {/* EDIT MODAL */}
+      {/* EDIT */}
       {editOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
 

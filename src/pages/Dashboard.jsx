@@ -21,7 +21,6 @@ export default function Dashboard() {
           return;
         }
 
-        // 🔥 FIXED: correct API + Bearer token
         const res = await fetch(`${API_URL}/my-qrs`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -44,7 +43,6 @@ export default function Dashboard() {
       }
     };
 
-    // 🔥 Only user dashboard uses this
     if (role !== "admin") {
       fetchData();
     } else {
@@ -52,6 +50,11 @@ export default function Dashboard() {
     }
 
   }, [navigate, role]);
+
+  /* 🔥 HANDLE DELETE (IMPORTANT FIX) */
+  const handleDelete = (id) => {
+    setQrs(prev => prev.filter(q => q._id !== id));
+  };
 
   if (loading) {
     return (
@@ -80,7 +83,6 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* USER BUTTON */}
           {role !== "admin" && (
             <button
               onClick={() => navigate("/create")}
@@ -91,7 +93,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* 🔥 ADMIN ACTIONS */}
+        {/* ADMIN ACTIONS */}
         {role === "admin" && (
           <div className="flex flex-wrap gap-4 mb-6">
 
@@ -130,7 +132,11 @@ export default function Dashboard() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {qrs.map((qr) => (
-                  <Card key={qr._id} id={qr._id} />
+                  <Card
+                    key={qr._id}
+                    id={qr._id}
+                    onDelete={handleDelete} // 🔥 FIX CONNECTED
+                  />
                 ))}
               </div>
             )}
