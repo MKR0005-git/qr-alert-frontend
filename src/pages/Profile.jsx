@@ -57,18 +57,22 @@ Blood Group: ${data?.bloodGroup}
 Location:
 ${locationText}`;
 
-    // ✅ FIX: direct redirect (mobile safe)
+    // ✅ WhatsApp priority
     if (phone) {
       window.location.href =
         `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
       return;
     }
 
-    // fallback email
+    // ✅ Email fallback
     if (data?.emergencyEmail) {
       window.location.href =
         `mailto:${data.emergencyEmail}?subject=Emergency Alert&body=${encodeURIComponent(message)}`;
+      return;
     }
+
+    // ❌ No contact available
+    alert("No emergency contact available");
   };
 
   /* ================= ERROR ================= */
