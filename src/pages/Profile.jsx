@@ -51,11 +51,14 @@ export default function Profile() {
     const phone = (data?.emergencyContact || "").replace(/\D/g, "");
 
     const message = `🚨 EMERGENCY ALERT 🚨
+
 Name: ${data?.name}
 Blood Group: ${data?.bloodGroup}
 
-Location:
-${locationText}`;
+📍 Location:
+${locationText}
+
+⚠️ Please contact immediately`;
 
     // ✅ WhatsApp priority
     if (phone) {
@@ -64,14 +67,16 @@ ${locationText}`;
       return;
     }
 
-    // ✅ Email fallback
+    // ✅ Email fallback (NOW PREFILLED)
     if (data?.emergencyEmail) {
+      const subject = encodeURIComponent("🚨 Emergency Alert");
+      const body = encodeURIComponent(message);
+
       window.location.href =
-        `mailto:${data.emergencyEmail}?subject=Emergency Alert&body=${encodeURIComponent(message)}`;
+        `mailto:${data.emergencyEmail}?subject=${subject}&body=${body}`;
       return;
     }
 
-    // ❌ No contact available
     alert("No emergency contact available");
   };
 
@@ -166,13 +171,14 @@ ${locationText}`;
             </a>
           )}
 
+          {/* 🔥 FIXED EMAIL BUTTON */}
           {data.emergencyEmail && (
-            <a
-              href={`mailto:${data.emergencyEmail}`}
+            <button
+              onClick={handleEmergency}
               className="bg-blue-500 py-3 rounded-xl text-center font-semibold"
             >
               📧 Send Email
-            </a>
+            </button>
           )}
 
         </div>
@@ -193,7 +199,7 @@ ${locationText}`;
             </h2>
 
             <p className="text-sm text-gray-400 mb-5">
-              This will send your location via WhatsApp
+              This will send your location via WhatsApp / Email
             </p>
 
             <div className="flex gap-3">
